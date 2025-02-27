@@ -1,6 +1,13 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 const (
 	screenWidth  = 1000
@@ -12,6 +19,7 @@ var (
 	bgColor = rl.NewColor(147, 211, 196, 255)
 
 	grassSprite  rl.Texture2D
+	tex          rl.Texture2D
 	playerSprite rl.Texture2D
 
 	playerSrc                                     rl.Rectangle
@@ -23,16 +31,73 @@ var (
 
 	frameCount int
 
+	tileDest            rl.Rectangle
+	tileSrc             rl.Rectangle
+	tileMap             []int
+	srcMap              []string
+	mapWidth, mapHeight int
+
 	playerSpeed float32 = 3
 
 	musicPaused bool
 	music       rl.Music
+	printDebug  bool
 
 	cam rl.Camera2D
 )
 
+func rectToString(rec rl.Rectangle) string {
+	return fmt.Sprintf("X:%v, Y:%v, H:%v, W:%v", rec.X, rec.Y, rec.Height, rec.Width)
+}
+
+func vec2ToString(vec rl.Vector2) string {
+	return fmt.Sprintf("X:%v, Y:%v", vec.X, vec.Y)
+}
+
+func debugText() []string {
+	return []string{
+		fmt.Sprintf("FPS: %v", rl.GetFPS()),
+		fmt.Sprintf("Cam Target %v", vec2ToString(cam.Target)),
+		fmt.Sprintf("Player Direction: %v   U:%v, D:%v, L:%v, R:%v", playerDir, playerUp, playerDown, playerLeft, playerRight),
+		fmt.Sprintf("Player Speed: %v", playerSpeed),
+		fmt.Sprintf("Player Frame: %v", playerFrame),
+		fmt.Sprintf("Player Moving: %v", playerMoving),
+		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
+		fmt.Sprintf("Player Dest %v", rectToString(playerDest)),
+		fmt.Sprintf("Music Paused: %v", musicPaused),
+		fmt.Sprintf("srcMap %v", srcMap),
+	}
+}
+
+func drawDebug(debugText []string) {
+	textSize := 10
+	lineSpace := 15
+
+	offsetX := 10
+	offsetY := 10
+
+	for i, line := range debugText {
+		rl.DrawText(line, int32(offsetX), int32(offsetY+lineSpace*i), int32(textSize), rl.Black)
+	}
+}
+
 func drawScene() {
-	rl.DrawTexture(grassSprite, 100, 50, rl.White)
+	for i := 0; i < len(tileMap); i++ {
+		if tileMap[i] != 0 {
+			tileDest.X = tileDest.Width * float32(i%mapWidth)
+			tileDest.Y = tileDest.Height * float32(i/mapWidth)
+
+			if srcMap[i] == "g" {
+				tex = grassSprite
+				os.Exit(1)
+			}
+
+			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1)%int(tex.Width/int32(tileSrc.Width)))
+			tileSrc.Y = tileSrc.Height * float32((tileMap[i]-1)/int(tex.Width/int32(tileSrc.Width)))
+
+			rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+		}
+	}
 	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
 }
 
@@ -65,6 +130,10 @@ func input() {
 		playerSpeed = 6
 	} else {
 		playerSpeed = 3
+	}
+
+	if rl.IsKeyPressed(rl.KeyF3) {
+		printDebug = !printDebug
 	}
 
 	if rl.IsKeyPressed(rl.KeyQ) {
@@ -124,6 +193,7 @@ func update() {
 	if !playerMoving && playerFrame > 1 {
 		playerFrame = 0
 	}
+
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
@@ -147,7 +217,45 @@ func render() {
 
 	drawScene()
 	rl.EndMode2D()
+
+	if printDebug {
+		drawDebug(debugText())
+	}
+
 	rl.EndDrawing()
+}
+
+func loadMap(mapFile string) {
+	file, err := os.ReadFile(mapFile)
+
+	if err != nil {
+		panic(err)
+	}
+
+	remNewLine := strings.Replace(string(file), "\n", " ", -1)
+	sliced := strings.Split(remNewLine, " ")
+	mapWidth = -1
+	mapHeight = -1
+
+	for i := 0; i < len(sliced); i++ {
+		s, _ := strconv.ParseInt(sliced[i], 10, 64)
+		m := int(s)
+
+		if mapWidth == -1 {
+			mapWidth = m
+		} else if mapHeight == -1 {
+			mapHeight = m
+		} else if i < mapWidth*mapHeight+2 {
+			tileMap = append(tileMap, m)
+			os.Exit(0)
+		} else {
+			srcMap = append(srcMap, sliced[i])
+		}
+	}
+
+	if len(tileMap) > mapWidth*mapHeight {
+		tileMap = tileMap[:len(tileMap)-1]
+	}
 }
 
 func init() {
@@ -156,6 +264,9 @@ func init() {
 	rl.SetTargetFPS(60)
 
 	grassSprite = rl.LoadTexture("res/Tilesets/ground-tiles/New-tiles/Grass_tiles_v2.png")
+
+	tileDest = rl.NewRectangle(0, 0, 16, 16)
+	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
@@ -169,6 +280,10 @@ func init() {
 
 	cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
 		rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2))), 0, 1.5)
+
+	printDebug = false
+
+	loadMap("one.map")
 
 }
 func quit() {
