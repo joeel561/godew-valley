@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	screenWidth  = 1000
-	screenHeight = 480
+	screenWidth  = 1920
+	screenHeight = 1080
 )
 
 var (
@@ -19,6 +19,7 @@ var (
 	bgColor = rl.NewColor(147, 211, 196, 255)
 
 	grassSprite  rl.Texture2D
+	waterSprite  rl.Texture2D
 	tex          rl.Texture2D
 	playerSprite rl.Texture2D
 
@@ -37,7 +38,7 @@ var (
 	srcMap              []string
 	mapWidth, mapHeight int
 
-	playerSpeed float32 = 3
+	playerSpeed float32 = 1.4
 
 	musicPaused bool
 	music       rl.Music
@@ -89,7 +90,10 @@ func drawScene() {
 
 			if srcMap[i] == "g" {
 				tex = grassSprite
-				os.Exit(1)
+			}
+
+			if srcMap[i] == "w" {
+				tex = waterSprite
 			}
 
 			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1)%int(tex.Width/int32(tileSrc.Width)))
@@ -102,6 +106,17 @@ func drawScene() {
 }
 
 func input() {
+	if rl.IsKeyDown(rl.KeyF10) {
+		display := rl.GetCurrentMonitor()
+		if rl.IsWindowFullscreen() {
+			rl.SetWindowSize(screenWidth, screenHeight)
+		} else {
+			rl.SetWindowSize(rl.GetMonitorWidth(display), rl.GetMonitorHeight(display))
+		}
+
+		rl.ToggleFullscreen()
+	}
+
 	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
 		playerMoving = true
 		playerDir = 5
@@ -127,9 +142,9 @@ func input() {
 	}
 
 	if rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift) {
-		playerSpeed = 6
+		playerSpeed = 2
 	} else {
-		playerSpeed = 3
+		playerSpeed = 1.4
 	}
 
 	if rl.IsKeyPressed(rl.KeyF3) {
@@ -149,21 +164,21 @@ func update() {
 		if playerUp {
 			playerDest.Y -= playerSpeed
 
-			if playerSpeed == 6 {
+			if playerSpeed == 2 {
 				playerDir = 9
 			}
 		}
 		if playerDown {
 			playerDest.Y += playerSpeed
 
-			if playerSpeed == 6 {
+			if playerSpeed == 2 {
 				playerDir = 8
 			}
 		}
 		if playerLeft {
 			playerDest.X -= playerSpeed
 
-			if playerSpeed == 6 {
+			if playerSpeed == 2 {
 				playerDir = 11
 			}
 
@@ -171,7 +186,7 @@ func update() {
 		if playerRight {
 			playerDest.X += playerSpeed
 
-			if playerSpeed == 6 {
+			if playerSpeed == 2 {
 				playerDir = 10
 			}
 		}
@@ -197,7 +212,7 @@ func update() {
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
-	rl.UpdateMusicStream(music)
+	//rl.UpdateMusicStream(music)
 	if musicPaused {
 		rl.PauseMusicStream(music)
 	} else {
@@ -232,7 +247,7 @@ func loadMap(mapFile string) {
 		panic(err)
 	}
 
-	remNewLine := strings.Replace(string(file), "\n", " ", -1)
+	remNewLine := strings.Replace(string(file), "\r\n", " ", -1)
 	sliced := strings.Split(remNewLine, " ")
 	mapWidth = -1
 	mapHeight = -1
@@ -247,7 +262,7 @@ func loadMap(mapFile string) {
 			mapHeight = m
 		} else if i < mapWidth*mapHeight+2 {
 			tileMap = append(tileMap, m)
-			os.Exit(0)
+
 		} else {
 			srcMap = append(srcMap, sliced[i])
 		}
@@ -264,13 +279,14 @@ func init() {
 	rl.SetTargetFPS(60)
 
 	grassSprite = rl.LoadTexture("res/Tilesets/ground-tiles/New-tiles/Grass_tiles_v2.png")
+	waterSprite = rl.LoadTexture("res/Tilesets/ground-tiles/water-frames/Water_1.png")
 
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
-	playerDest = rl.NewRectangle(200, 200, 100, 100)
+	playerDest = rl.NewRectangle(200, 200, 60, 60)
 
 	rl.InitAudioDevice()
 	music = rl.LoadMusicStream("res/bgmusic.mp3")
@@ -279,7 +295,7 @@ func init() {
 	rl.PlayMusicStream(music)
 
 	cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
-		rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2))), 0, 1.5)
+		rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2))), 0, 3)
 
 	printDebug = false
 
@@ -288,6 +304,7 @@ func init() {
 }
 func quit() {
 	rl.UnloadTexture(grassSprite)
+	rl.UnloadTexture(waterSprite)
 	rl.UnloadTexture(playerSprite)
 	rl.UnloadMusicStream(music)
 	rl.CloseAudioDevice()
