@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -241,13 +243,23 @@ func render() {
 }
 
 func loadMap(mapFile string) {
-	file, err := os.ReadFile(mapFile)
+	file, err := os.Open(mapFile)
 
 	if err != nil {
 		panic(err)
 	}
 
-	remNewLine := strings.Replace(string(file), "\r\n", " ", -1)
+	defer file.Close()
+
+	byteValue, _ := ioutil.ReadAll(file)
+
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+
+	fmt.Println(result["mapWidth"])
+	os.Exit(1)
+
+	remNewLine := strings.Replace(mapFile, "\r\n", " ", -1)
 	sliced := strings.Split(remNewLine, " ")
 	mapWidth = -1
 	mapHeight = -1
@@ -299,7 +311,7 @@ func init() {
 
 	printDebug = false
 
-	loadMap("one.map")
+	loadMap("map.json")
 
 }
 func quit() {
