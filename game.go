@@ -6,24 +6,42 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
-	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const (
-	screenWidth  = 1920
+	screenWidth  = 1200
 	screenHeight = 1080
 )
+
+type JsonMap struct {
+	Layers    []Layer `json:"layers"`
+	MapHeight int     `json:"mapHeight"`
+	MapWidth  int     `json:"mapWidth"`
+	TileMap   int     `json:"TileMap"`
+}
+
+type Layer struct {
+	Name  string `json:"name"`
+	Tiles []Tile `json:"tiles"`
+}
+
+type Tile struct {
+	Id int `json:"id"`
+	X  int `json:"x"`
+	Y  int `json:"y"`
+}
 
 var (
 	running = true
 	bgColor = rl.NewColor(147, 211, 196, 255)
 
-	grassSprite  rl.Texture2D
-	waterSprite  rl.Texture2D
-	tex          rl.Texture2D
-	playerSprite rl.Texture2D
+	grassSprite    rl.Texture2D
+	waterSprite    rl.Texture2D
+	tex            rl.Texture2D
+	playerSprite   rl.Texture2D
+	spritesheetMap rl.Texture2D
 
 	playerSrc                                     rl.Rectangle
 	playerDest                                    rl.Rectangle
@@ -85,18 +103,22 @@ func drawDebug(debugText []string) {
 }
 
 func drawScene() {
-	for i := 0; i < len(tileMap); i++ {
+	var jsonMap JsonMap
+
+	for i := 0; i < len(jsonMap.Layers[0].Tiles); i++ {
 		if tileMap[i] != 0 {
 			tileDest.X = tileDest.Width * float32(i%mapWidth)
 			tileDest.Y = tileDest.Height * float32(i/mapWidth)
 
-			if srcMap[i] == "g" {
-				tex = grassSprite
-			}
+			/* 			if srcMap[i] == "g" {
+			   				tex = grassSprite
+			   			}
 
-			if srcMap[i] == "w" {
-				tex = waterSprite
-			}
+			   			if srcMap[i] == "w" {
+			   				tex = waterSprite
+			   			} */
+
+			tex = spritesheetMap
 
 			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1)%int(tex.Width/int32(tileSrc.Width)))
 			tileSrc.Y = tileSrc.Height * float32((tileMap[i]-1)/int(tex.Width/int32(tileSrc.Width)))
@@ -253,14 +275,21 @@ func loadMap(mapFile string) {
 
 	byteValue, _ := ioutil.ReadAll(file)
 
-	var result map[string]interface{}
-	json.Unmarshal([]byte(byteValue), &result)
+	var jsonMap JsonMap
 
-	fmt.Println(result["mapWidth"])
-	os.Exit(1)
+	json.Unmarshal(byteValue, &jsonMap)
 
-	remNewLine := strings.Replace(mapFile, "\r\n", " ", -1)
-	sliced := strings.Split(remNewLine, " ")
+	for i := 0; i < len(jsonMap.Layers); i++ {
+		fmt.Println(jsonMap.Layers[i].Name)
+		fmt.Println(jsonMap.MapHeight)
+		os.Exit(1)
+	}
+
+	/* 	var result map[string]interface{}
+	   	json.Unmarshal([]byte(byteValue), &result)
+
+	   	remNewLine := strings.Replace(mapFile, "\r\n", " ", -1)
+	   	sliced := strings.Split(remNewLine, " ") */
 	mapWidth = -1
 	mapHeight = -1
 
@@ -293,6 +322,8 @@ func init() {
 	grassSprite = rl.LoadTexture("res/Tilesets/ground-tiles/New-tiles/Grass_tiles_v2.png")
 	waterSprite = rl.LoadTexture("res/Tilesets/ground-tiles/water-frames/Water_1.png")
 
+	spritesheetMap = rl.LoadTexture("res/spritesheet.png")
+
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
@@ -318,6 +349,7 @@ func quit() {
 	rl.UnloadTexture(grassSprite)
 	rl.UnloadTexture(waterSprite)
 	rl.UnloadTexture(playerSprite)
+	rl.UnloadTexture(spritesheetMap)
 	rl.UnloadMusicStream(music)
 	rl.CloseAudioDevice()
 	rl.CloseWindow()
