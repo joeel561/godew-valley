@@ -12,14 +12,14 @@ import (
 
 const (
 	screenWidth  = 1200
-	screenHeight = 1080
+	screenHeight = 800
 )
 
 type JsonMap struct {
 	Layers    []Layer `json:"layers"`
 	MapHeight int     `json:"mapHeight"`
 	MapWidth  int     `json:"mapWidth"`
-	TileMap   int     `json:"TileMap"`
+	TileSize  int     `json:"tileSize"`
 }
 
 type Layer struct {
@@ -28,9 +28,9 @@ type Layer struct {
 }
 
 type Tile struct {
-	Id int `json:"id"`
-	X  int `json:"x"`
-	Y  int `json:"y"`
+	Id string `json:"id"`
+	X  int    `json:"x"`
+	Y  int    `json:"y"`
 }
 
 var (
@@ -52,11 +52,9 @@ var (
 
 	frameCount int
 
-	tileDest            rl.Rectangle
-	tileSrc             rl.Rectangle
-	tileMap             []int
-	srcMap              []string
-	mapWidth, mapHeight int
+	tileDest rl.Rectangle
+	tileSrc  rl.Rectangle
+	jsonMap  JsonMap
 
 	playerSpeed float32 = 1.4
 
@@ -86,7 +84,6 @@ func debugText() []string {
 		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
 		fmt.Sprintf("Player Dest %v", rectToString(playerDest)),
 		fmt.Sprintf("Music Paused: %v", musicPaused),
-		fmt.Sprintf("srcMap %v", srcMap),
 	}
 }
 
@@ -103,29 +100,53 @@ func drawDebug(debugText []string) {
 }
 
 func drawScene() {
-	var jsonMap JsonMap
+	var groundTiles []Tile
+	var waterTiles []Tile
 
-	for i := 0; i < len(jsonMap.Layers[0].Tiles); i++ {
-		if tileMap[i] != 0 {
-			tileDest.X = tileDest.Width * float32(i%mapWidth)
-			tileDest.Y = tileDest.Height * float32(i/mapWidth)
+	for i := 0; i < len(jsonMap.Layers); i++ {
+		if jsonMap.Layers[i].Name == "Background" {
+			groundTiles = jsonMap.Layers[i].Tiles
+		}
 
-			/* 			if srcMap[i] == "g" {
-			   				tex = grassSprite
-			   			}
-
-			   			if srcMap[i] == "w" {
-			   				tex = waterSprite
-			   			} */
-
-			tex = spritesheetMap
-
-			tileSrc.X = tileSrc.Width * float32((tileMap[i]-1)%int(tex.Width/int32(tileSrc.Width)))
-			tileSrc.Y = tileSrc.Height * float32((tileMap[i]-1)/int(tex.Width/int32(tileSrc.Width)))
-
-			rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+		if jsonMap.Layers[i].Name == "Water" {
+			waterTiles = jsonMap.Layers[i].Tiles
 		}
 	}
+
+	for y := 0; y < jsonMap.MapHeight; y++ {
+		for x := 0; x < jsonMap.MapWidth; x++ {
+			for i := 0; i < len(waterTiles); i++ {
+				s, _ := strconv.ParseInt(waterTiles[i].Id, 10, 64)
+				tileId := int(s)
+				tex = spritesheetMap
+
+				texColumns := tex.Width / int32(jsonMap.TileSize)
+				tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
+				tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
+
+				tileDest.X = float32(x * jsonMap.TileSize)
+				tileDest.Y = float32(y * jsonMap.TileSize)
+
+				rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+			}
+		}
+	}
+
+	for i := 0; i < len(groundTiles); i++ {
+		s, _ := strconv.ParseInt(groundTiles[i].Id, 10, 64)
+		tileId := int(s)
+		tex = spritesheetMap
+
+		texColumns := tex.Width / int32(jsonMap.TileSize)
+		tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
+		tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
+
+		tileDest.X = float32(groundTiles[i].X * jsonMap.TileSize)
+		tileDest.Y = float32(groundTiles[i].Y * jsonMap.TileSize)
+
+		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+	}
+
 	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
 }
 
@@ -275,52 +296,13 @@ func loadMap(mapFile string) {
 
 	byteValue, _ := ioutil.ReadAll(file)
 
-	var jsonMap JsonMap
-
 	json.Unmarshal(byteValue, &jsonMap)
-
-	for i := 0; i < len(jsonMap.Layers); i++ {
-		fmt.Println(jsonMap.Layers[i].Name)
-		fmt.Println(jsonMap.MapHeight)
-		os.Exit(1)
-	}
-
-	/* 	var result map[string]interface{}
-	   	json.Unmarshal([]byte(byteValue), &result)
-
-	   	remNewLine := strings.Replace(mapFile, "\r\n", " ", -1)
-	   	sliced := strings.Split(remNewLine, " ") */
-	mapWidth = -1
-	mapHeight = -1
-
-	for i := 0; i < len(sliced); i++ {
-		s, _ := strconv.ParseInt(sliced[i], 10, 64)
-		m := int(s)
-
-		if mapWidth == -1 {
-			mapWidth = m
-		} else if mapHeight == -1 {
-			mapHeight = m
-		} else if i < mapWidth*mapHeight+2 {
-			tileMap = append(tileMap, m)
-
-		} else {
-			srcMap = append(srcMap, sliced[i])
-		}
-	}
-
-	if len(tileMap) > mapWidth*mapHeight {
-		tileMap = tileMap[:len(tileMap)-1]
-	}
 }
 
 func init() {
 	rl.InitWindow(screenWidth, screenHeight, "godew valley - a game by joeel56")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-
-	grassSprite = rl.LoadTexture("res/Tilesets/ground-tiles/New-tiles/Grass_tiles_v2.png")
-	waterSprite = rl.LoadTexture("res/Tilesets/ground-tiles/water-frames/Water_1.png")
 
 	spritesheetMap = rl.LoadTexture("res/spritesheet.png")
 
