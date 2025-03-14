@@ -42,6 +42,7 @@ var (
 	tex            rl.Texture2D
 	playerSprite   rl.Texture2D
 	spritesheetMap rl.Texture2D
+	wall           rl.Rectangle
 
 	playerSrc                                     rl.Rectangle
 	playerDest                                    rl.Rectangle
@@ -49,6 +50,7 @@ var (
 	playerDir                                     int
 	playerUp, playerDown, playerLeft, playerRight bool
 	playerFrame                                   int
+	canmove                                       bool
 
 	frameCount int
 
@@ -84,6 +86,7 @@ func debugText() []string {
 		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
 		fmt.Sprintf("Player Dest %v", rectToString(playerDest)),
 		fmt.Sprintf("Music Paused: %v", musicPaused),
+		fmt.Sprintf("can move: %v", canmove),
 	}
 }
 
@@ -146,7 +149,7 @@ func drawScene() {
 
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
 	}
-
+	rl.DrawRectangle(int32(wall.X), int32(wall.Y), int32(wall.Width), int32(wall.Height), rl.Red)
 	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
 }
 
@@ -204,6 +207,16 @@ func update() {
 	running = !rl.WindowShouldClose()
 
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
+
+	checkrec := playerSrc
+	checkrec.X += playerDest.X
+	checkrec.Y += playerDest.Y
+
+	canmove = true
+
+	if rl.CheckCollisionRecs(checkrec, wall) {
+		canmove = false
+	}
 
 	if playerMoving {
 		if playerUp {
@@ -311,6 +324,7 @@ func init() {
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
+	wall = rl.NewRectangle(300, 200, 200, 100)
 	playerDest = rl.NewRectangle(200, 200, 60, 60)
 
 	rl.InitAudioDevice()
