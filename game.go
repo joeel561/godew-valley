@@ -52,6 +52,8 @@ var (
 	playerFrame                                   int
 	canmove                                       bool
 
+	checkrec rl.Rectangle
+
 	frameCount int
 
 	tileDest rl.Rectangle
@@ -130,7 +132,7 @@ func drawScene() {
 				tileDest.X = float32(x * jsonMap.TileSize)
 				tileDest.Y = float32(y * jsonMap.TileSize)
 
-				rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+				rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 			}
 		}
 	}
@@ -147,10 +149,28 @@ func drawScene() {
 		tileDest.X = float32(groundTiles[i].X * jsonMap.TileSize)
 		tileDest.Y = float32(groundTiles[i].Y * jsonMap.TileSize)
 
-		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
+
 	rl.DrawRectangle(int32(wall.X), int32(wall.Y), int32(wall.Width), int32(wall.Height), rl.Red)
-	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(playerDest.Width, playerDest.Height), 0, rl.White)
+
+	if printDebug {
+		// Draw cetner map cross
+		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(-20, 0), 1, rl.Gray)
+		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(20, 0), 1, rl.Red)
+		rl.DrawTriangle(rl.NewVector2(16, 2), rl.NewVector2(20, 0), rl.NewVector2(16, -2), rl.Red)
+		rl.DrawText("X", int32(22), int32(-5), int32(10), rl.Black)
+		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(0, -20), 1, rl.Gray)
+		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(0, 20), 1, rl.Blue)
+		rl.DrawTriangle(rl.NewVector2(-2, 16), rl.NewVector2(0, 20), rl.NewVector2(2, 16), rl.Blue)
+		rl.DrawText("Y", int32(-2), int32(22), int32(10), rl.Black)
+
+		// Draw collision rectangle
+		rl.DrawRectangleLinesEx(checkrec, 1, rl.Green)
+		rl.DrawRectangleLinesEx(playerDest, 1, rl.Purple)
+	}
+
+	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(0, 0), 0, rl.White)
 }
 
 func input() {
@@ -208,17 +228,18 @@ func update() {
 
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
-	checkrec := playerSrc
-	checkrec.X += playerDest.X
-	checkrec.Y += playerDest.Y
-
-	canmove = true
-
-	if rl.CheckCollisionRecs(checkrec, wall) {
-		canmove = false
-	}
-
 	if playerMoving {
+		checkrec = playerDest
+		checkrec.X = playerDest.X
+		checkrec.Y = playerDest.Y
+
+		fmt.Println(checkrec)
+
+		if rl.CheckCollisionRecs(checkrec, wall) {
+			canmove = false
+		}
+
+		canmove = true
 		if playerUp {
 			playerDest.Y -= playerSpeed
 
@@ -324,8 +345,8 @@ func init() {
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
-	wall = rl.NewRectangle(300, 200, 200, 100)
-	playerDest = rl.NewRectangle(200, 200, 60, 60)
+	wall = rl.NewRectangle(20, 20, 200, 100)
+	playerDest = rl.NewRectangle(0, 0, 60, 60)
 
 	rl.InitAudioDevice()
 	music = rl.LoadMusicStream("res/bgmusic.mp3")
