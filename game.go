@@ -51,8 +51,10 @@ var (
 	playerUp, playerDown, playerLeft, playerRight bool
 	playerFrame                                   int
 	canmove                                       bool
+	currentPlayerDest                             rl.Rectangle
 
-	checkrec rl.Rectangle
+	playerHitBox        rl.Rectangle
+	playerHitBoxYOffset float32 = 3
 
 	frameCount int
 
@@ -166,7 +168,7 @@ func drawScene() {
 		rl.DrawText("Y", int32(-2), int32(22), int32(10), rl.Black)
 
 		// Draw collision rectangle
-		rl.DrawRectangleLinesEx(checkrec, 1, rl.Green)
+		rl.DrawRectangleLinesEx(playerHitBox, 1, rl.Green)
 		rl.DrawRectangleLinesEx(playerDest, 1, rl.Purple)
 	}
 
@@ -225,58 +227,70 @@ func input() {
 }
 func update() {
 	running = !rl.WindowShouldClose()
+	canmove = true
 
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
-	if playerMoving {
-		checkrec = playerDest
-		checkrec.X = playerDest.X
-		checkrec.Y = playerDest.Y
+	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
+	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
 
-		fmt.Println(checkrec)
+	// problem is that i can't move when i collide with the wall, even if i move in the opposite direction
+	if rl.CheckCollisionRecs(playerHitBox, wall) {
+		canmove = false
 
-		if rl.CheckCollisionRecs(checkrec, wall) {
-			canmove = false
-		}
-
-		canmove = true
 		if playerUp {
-			playerDest.Y -= playerSpeed
-
-			if playerSpeed == 2 {
-				playerDir = 9
-			}
+			playerDest.Y += 1
 		}
 		if playerDown {
-			playerDest.Y += playerSpeed
-
-			if playerSpeed == 2 {
-				playerDir = 8
-			}
+			playerDest.Y -= 1
 		}
 		if playerLeft {
-			playerDest.X -= playerSpeed
-
-			if playerSpeed == 2 {
-				playerDir = 11
-			}
-
+			playerDest.X += 1
 		}
 		if playerRight {
-			playerDest.X += playerSpeed
+			playerDest.X -= 1
+		}
+	}
 
-			if playerSpeed == 2 {
-				playerDir = 10
+	if canmove {
+		if playerMoving {
+			if playerUp {
+				playerDest.Y -= playerSpeed
+
+				if playerSpeed == 2 {
+					playerDir = 9
+				}
 			}
-		}
+			if playerDown {
+				playerDest.Y += playerSpeed
 
-		if frameCount%8 == 1 {
+				if playerSpeed == 2 {
+					playerDir = 8
+				}
+			}
+			if playerLeft {
+				playerDest.X -= playerSpeed
+
+				if playerSpeed == 2 {
+					playerDir = 11
+				}
+
+			}
+			if playerRight {
+				playerDest.X += playerSpeed
+
+				if playerSpeed == 2 {
+					playerDir = 10
+				}
+			}
+
+			if frameCount%8 == 1 {
+				playerFrame++
+			}
+		} else if frameCount%45 == 1 {
 			playerFrame++
+
 		}
-
-	} else if frameCount%45 == 1 {
-		playerFrame++
-
 	}
 
 	frameCount++
@@ -345,8 +359,9 @@ func init() {
 	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
-	wall = rl.NewRectangle(20, 20, 200, 100)
+	wall = rl.NewRectangle(50, 100, 200, 100)
 	playerDest = rl.NewRectangle(0, 0, 60, 60)
+	playerHitBox = rl.NewRectangle(0, 0, 10, 10)
 
 	rl.InitAudioDevice()
 	music = rl.LoadMusicStream("res/bgmusic.mp3")
