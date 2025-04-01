@@ -43,6 +43,7 @@ var (
 	playerSprite   rl.Texture2D
 	spritesheetMap rl.Texture2D
 	wall           rl.Rectangle
+	oldX, oldY     float32
 
 	playerSrc                                     rl.Rectangle
 	playerDest                                    rl.Rectangle
@@ -50,11 +51,8 @@ var (
 	playerDir                                     int
 	playerUp, playerDown, playerLeft, playerRight bool
 	playerFrame                                   int
-	canmove                                       bool
-	currentPlayerDest                             rl.Rectangle
-
-	playerHitBox        rl.Rectangle
-	playerHitBoxYOffset float32 = 3
+	playerHitBox                                  rl.Rectangle
+	playerHitBoxYOffset                           float32 = 3
 
 	frameCount int
 
@@ -90,7 +88,6 @@ func debugText() []string {
 		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
 		fmt.Sprintf("Player Dest %v", rectToString(playerDest)),
 		fmt.Sprintf("Music Paused: %v", musicPaused),
-		fmt.Sprintf("can move: %v", canmove),
 	}
 }
 
@@ -120,23 +117,19 @@ func drawScene() {
 		}
 	}
 
-	for y := 0; y < jsonMap.MapHeight; y++ {
-		for x := 0; x < jsonMap.MapWidth; x++ {
-			for i := 0; i < len(waterTiles); i++ {
-				s, _ := strconv.ParseInt(waterTiles[i].Id, 10, 64)
-				tileId := int(s)
-				tex = spritesheetMap
+	for i := 0; i < len(waterTiles); i++ {
+		s, _ := strconv.ParseInt(waterTiles[i].Id, 10, 64)
+		tileId := int(s)
+		tex = spritesheetMap
 
-				texColumns := tex.Width / int32(jsonMap.TileSize)
-				tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
-				tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
+		texColumns := tex.Width / int32(jsonMap.TileSize)
+		tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
+		tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
 
-				tileDest.X = float32(x * jsonMap.TileSize)
-				tileDest.Y = float32(y * jsonMap.TileSize)
+		tileDest.X = float32(waterTiles[i].X * jsonMap.TileSize)
+		tileDest.Y = float32(waterTiles[i].Y * jsonMap.TileSize)
 
-				rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-			}
-		}
+		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
 
 	for i := 0; i < len(groundTiles); i++ {
@@ -227,70 +220,48 @@ func input() {
 }
 func update() {
 	running = !rl.WindowShouldClose()
-	canmove = true
+
+	oldX, oldY := playerDest.X, playerDest.Y
 
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
-	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
-	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
-
-	// problem is that i can't move when i collide with the wall, even if i move in the opposite direction
-	if rl.CheckCollisionRecs(playerHitBox, wall) {
-		canmove = false
-
+	if playerMoving {
 		if playerUp {
-			playerDest.Y += 1
+			playerDest.Y -= playerSpeed
+
+			if playerSpeed == 2 {
+				playerDir = 9
+			}
 		}
 		if playerDown {
-			playerDest.Y -= 1
+			playerDest.Y += playerSpeed
+
+			if playerSpeed == 2 {
+				playerDir = 8
+			}
 		}
 		if playerLeft {
-			playerDest.X += 1
+			playerDest.X -= playerSpeed
+
+			if playerSpeed == 2 {
+				playerDir = 11
+			}
+
 		}
 		if playerRight {
-			playerDest.X -= 1
+			playerDest.X += playerSpeed
+
+			if playerSpeed == 2 {
+				playerDir = 10
+			}
 		}
-	}
 
-	if canmove {
-		if playerMoving {
-			if playerUp {
-				playerDest.Y -= playerSpeed
-
-				if playerSpeed == 2 {
-					playerDir = 9
-				}
-			}
-			if playerDown {
-				playerDest.Y += playerSpeed
-
-				if playerSpeed == 2 {
-					playerDir = 8
-				}
-			}
-			if playerLeft {
-				playerDest.X -= playerSpeed
-
-				if playerSpeed == 2 {
-					playerDir = 11
-				}
-
-			}
-			if playerRight {
-				playerDest.X += playerSpeed
-
-				if playerSpeed == 2 {
-					playerDir = 10
-				}
-			}
-
-			if frameCount%8 == 1 {
-				playerFrame++
-			}
-		} else if frameCount%45 == 1 {
+		if frameCount%8 == 1 {
 			playerFrame++
-
 		}
+	} else if frameCount%45 == 1 {
+		playerFrame++
+
 	}
 
 	frameCount++
@@ -304,6 +275,43 @@ func update() {
 
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
+
+	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
+	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
+
+	fmt.Println(oldX, oldY, "oldX, oldY")
+	fmt.Println(playerDest.X, playerDest.Y, "playerDest.X, playerDest.Y")
+
+	if rl.CheckCollisionRecs(playerHitBox, wall) {
+		playerDest.X = oldX
+		playerDest.Y = oldY
+	}
+
+	var waterTiles []Tile
+
+	for i := 0; i < len(jsonMap.Layers); i++ {
+		if jsonMap.Layers[i].Name == "Water" {
+			waterTiles = jsonMap.Layers[i].Tiles
+		}
+	}
+
+	for i := 0; i < len(waterTiles); i++ {
+		if playerHitBox.X < float32(waterTiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
+			playerHitBox.X+playerHitBox.Width > float32(waterTiles[i].X*jsonMap.TileSize) &&
+			playerHitBox.Y < float32(waterTiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
+			playerHitBox.Y+playerHitBox.Height > float32(waterTiles[i].Y*jsonMap.TileSize) {
+
+			playerDest.X = oldX
+			playerDest.Y = oldY
+		}
+
+	}
+
+	groundTilesRect := rl.NewRectangle(0, 0, float32(jsonMap.MapWidth*jsonMap.TileSize), float32(jsonMap.MapHeight*jsonMap.TileSize))
+	if !rl.CheckCollisionRecs(playerHitBox, groundTilesRect) {
+		playerDest.X = oldX
+		playerDest.Y = oldY
+	}
 
 	//rl.UpdateMusicStream(music)
 	if musicPaused {
@@ -360,7 +368,7 @@ func init() {
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
 	wall = rl.NewRectangle(50, 100, 200, 100)
-	playerDest = rl.NewRectangle(0, 0, 60, 60)
+	playerDest = rl.NewRectangle(100, 50, 60, 60)
 	playerHitBox = rl.NewRectangle(0, 0, 10, 10)
 
 	rl.InitAudioDevice()
