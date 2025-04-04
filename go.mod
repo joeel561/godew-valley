@@ -1,4 +1,4 @@
-module main
+module godew-valley
 
 go 1.24.0
 

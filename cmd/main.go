@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"godew-valley/pkg/player"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -180,36 +181,7 @@ func input() {
 		rl.ToggleFullscreen()
 	}
 
-	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
-		playerMoving = true
-		playerDir = 5
-		playerUp = true
-	}
-
-	if rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown) {
-		playerMoving = true
-		playerDir = 4
-		playerDown = true
-	}
-
-	if rl.IsKeyDown(rl.KeyA) || rl.IsKeyDown(rl.KeyLeft) {
-		playerMoving = true
-		playerDir = 7
-		playerLeft = true
-	}
-
-	if rl.IsKeyDown(rl.KeyD) || rl.IsKeyDown(rl.KeyRight) {
-		playerMoving = true
-		playerDir = 6
-		playerRight = true
-	}
-
-	if rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift) {
-		playerSpeed = 2
-	} else {
-		playerSpeed = 1.4
-	}
-
+	player.PlayerInput()
 	if rl.IsKeyPressed(rl.KeyF3) {
 		printDebug = !printDebug
 	}
@@ -326,6 +298,19 @@ func update() {
 	playerUp, playerDown, playerLeft, playerRight = false, false, false, false
 }
 
+func update() {
+	running = !rl.WindowShouldClose()
+
+	PlayerMoving()
+
+	//rl.UpdateMusicStream(music)
+	if musicPaused {
+		rl.PauseMusicStream(music)
+	} else {
+		rl.ResumeMusicStream(music)
+	}
+}
+
 func render() {
 	rl.BeginDrawing()
 	rl.ClearBackground(bgColor)
@@ -360,11 +345,11 @@ func init() {
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
 
-	spritesheetMap = rl.LoadTexture("res/spritesheet.png")
+	spritesheetMap = rl.LoadTexture("assets/spritesheet.png")
 
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
-	playerSprite = rl.LoadTexture("res/Characters/CharakterSpritesheet.png")
+	playerSprite = rl.LoadTexture("assets/Characters/CharakterSpritesheet.png")
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
 	wall = rl.NewRectangle(50, 100, 200, 100)
@@ -372,7 +357,7 @@ func init() {
 	playerHitBox = rl.NewRectangle(0, 0, 10, 10)
 
 	rl.InitAudioDevice()
-	music = rl.LoadMusicStream("res/bgmusic.mp3")
+	music = rl.LoadMusicStream("assets/bgmusic.mp3")
 
 	musicPaused = false
 	rl.PlayMusicStream(music)
