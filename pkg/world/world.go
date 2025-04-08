@@ -1,4 +1,42 @@
-func loadMap(mapFile string) {
+package world
+
+import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+	"strconv"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+var (
+	tileDest       rl.Rectangle
+	tileSrc        rl.Rectangle
+	WorldMap       JsonMap
+	spritesheetMap rl.Texture2D
+	tex            rl.Texture2D
+	WaterTiles     []Tile
+)
+
+type JsonMap struct {
+	Layers    []Layer `json:"layers"`
+	MapHeight int     `json:"mapHeight"`
+	MapWidth  int     `json:"mapWidth"`
+	TileSize  int     `json:"tileSize"`
+}
+
+type Layer struct {
+	Name  string `json:"name"`
+	Tiles []Tile `json:"tiles"`
+}
+
+type Tile struct {
+	Id string `json:"id"`
+	X  int    `json:"x"`
+	Y  int    `json:"y"`
+}
+
+func LoadMap(mapFile string) {
 	file, err := os.Open(mapFile)
 
 	if err != nil {
@@ -9,34 +47,39 @@ func loadMap(mapFile string) {
 
 	byteValue, _ := ioutil.ReadAll(file)
 
-	json.Unmarshal(byteValue, &jsonMap)
+	json.Unmarshal(byteValue, &WorldMap)
 }
 
-func drawScene() {
-	var groundTiles []Tile
-	var waterTiles []Tile
+func InitWorld() {
+	spritesheetMap = rl.LoadTexture("assets/spritesheet.png")
+	tileDest = rl.NewRectangle(0, 0, 16, 16)
+	tileSrc = rl.NewRectangle(0, 0, 16, 16)
+}
 
-	for i := 0; i < len(jsonMap.Layers); i++ {
-		if jsonMap.Layers[i].Name == "Background" {
-			groundTiles = jsonMap.Layers[i].Tiles
+func DrawWorld() {
+	var groundTiles []Tile
+
+	for i := 0; i < len(WorldMap.Layers); i++ {
+		if WorldMap.Layers[i].Name == "Background" {
+			groundTiles = WorldMap.Layers[i].Tiles
 		}
 
-		if jsonMap.Layers[i].Name == "Water" {
-			waterTiles = jsonMap.Layers[i].Tiles
+		if WorldMap.Layers[i].Name == "Water" {
+			WaterTiles = WorldMap.Layers[i].Tiles
 		}
 	}
 
-	for i := 0; i < len(waterTiles); i++ {
-		s, _ := strconv.ParseInt(waterTiles[i].Id, 10, 64)
+	for i := 0; i < len(WaterTiles); i++ {
+		s, _ := strconv.ParseInt(WaterTiles[i].Id, 10, 64)
 		tileId := int(s)
 		tex = spritesheetMap
 
-		texColumns := tex.Width / int32(jsonMap.TileSize)
-		tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
-		tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
+		texColumns := tex.Width / int32(WorldMap.TileSize)
+		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
+		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
 
-		tileDest.X = float32(waterTiles[i].X * jsonMap.TileSize)
-		tileDest.Y = float32(waterTiles[i].Y * jsonMap.TileSize)
+		tileDest.X = float32(WaterTiles[i].X * WorldMap.TileSize)
+		tileDest.Y = float32(WaterTiles[i].Y * WorldMap.TileSize)
 
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
@@ -46,33 +89,17 @@ func drawScene() {
 		tileId := int(s)
 		tex = spritesheetMap
 
-		texColumns := tex.Width / int32(jsonMap.TileSize)
-		tileSrc.X = float32(jsonMap.TileSize) * float32((tileId)%int(texColumns))
-		tileSrc.Y = float32(jsonMap.TileSize) * float32((tileId)/int(texColumns))
+		texColumns := tex.Width / int32(WorldMap.TileSize)
+		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
+		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
 
-		tileDest.X = float32(groundTiles[i].X * jsonMap.TileSize)
-		tileDest.Y = float32(groundTiles[i].Y * jsonMap.TileSize)
+		tileDest.X = float32(groundTiles[i].X * WorldMap.TileSize)
+		tileDest.Y = float32(groundTiles[i].Y * WorldMap.TileSize)
 
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
+}
 
-	rl.DrawRectangle(int32(wall.X), int32(wall.Y), int32(wall.Width), int32(wall.Height), rl.Red)
-
-	if printDebug {
-		// Draw cetner map cross
-		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(-20, 0), 1, rl.Gray)
-		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(20, 0), 1, rl.Red)
-		rl.DrawTriangle(rl.NewVector2(16, 2), rl.NewVector2(20, 0), rl.NewVector2(16, -2), rl.Red)
-		rl.DrawText("X", int32(22), int32(-5), int32(10), rl.Black)
-		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(0, -20), 1, rl.Gray)
-		rl.DrawLineEx(rl.NewVector2(0, 0), rl.NewVector2(0, 20), 1, rl.Blue)
-		rl.DrawTriangle(rl.NewVector2(-2, 16), rl.NewVector2(0, 20), rl.NewVector2(2, 16), rl.Blue)
-		rl.DrawText("Y", int32(-2), int32(22), int32(10), rl.Black)
-
-		// Draw collision rectangle
-		rl.DrawRectangleLinesEx(playerHitBox, 1, rl.Green)
-		rl.DrawRectangleLinesEx(playerDest, 1, rl.Purple)
-	}
-
-	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(0, 0), 0, rl.White)
+func UnloadWorldTexture() {
+	rl.UnloadTexture(spritesheetMap)
 }

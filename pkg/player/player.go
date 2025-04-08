@@ -2,8 +2,14 @@ package player
 
 import (
 	"fmt"
+	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+const (
+	screenWidth  = 1200
+	screenHeight = 800
 )
 
 var (
@@ -23,8 +29,24 @@ var (
 
 	playerSpeed float32 = 1.4
 
-	cam rl.Camera2D
+	Cam rl.Camera2D
 )
+
+func InitPlayer() {
+	playerSprite = rl.LoadTexture("assets/Characters/CharakterSpritesheet.png")
+
+	playerSrc = rl.NewRectangle(0, 0, 48, 48)
+
+	playerDest = rl.NewRectangle(150, 100, 60, 60)
+	playerHitBox = rl.NewRectangle(0, 0, 10, 10)
+
+	Cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
+		rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2))), 0, 3)
+}
+
+func DrawPlayerTexture() {
+	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(0, 0), 0, rl.White)
+}
 
 func PlayerInput() {
 	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
@@ -60,6 +82,8 @@ func PlayerInput() {
 
 func PlayerMoving() {
 	oldX, oldY := playerDest.X, playerDest.Y
+
+	fmt.Println(oldX, oldY)
 
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
@@ -117,21 +141,8 @@ func PlayerMoving() {
 	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
 	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
 
-	fmt.Println(oldX, oldY, "oldX, oldY")
-	fmt.Println(playerDest.X, playerDest.Y, "playerDest.X, playerDest.Y")
-
-	if rl.CheckCollisionRecs(playerHitBox, wall) {
-		playerDest.X = oldX
-		playerDest.Y = oldY
-	}
-
-	var waterTiles []Tile
-
-	for i := 0; i < len(jsonMap.Layers); i++ {
-		if jsonMap.Layers[i].Name == "Water" {
-			waterTiles = jsonMap.Layers[i].Tiles
-		}
-	}
+	var waterTiles = world.WaterTiles
+	var jsonMap = world.WorldMap
 
 	for i := 0; i < len(waterTiles); i++ {
 		if playerHitBox.X < float32(waterTiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
@@ -144,8 +155,12 @@ func PlayerMoving() {
 		}
 	}
 
-	cam.Target = rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2)))
+	Cam.Target = rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2)))
 
 	playerMoving = false
 	playerUp, playerDown, playerLeft, playerRight = false, false, false, false
+}
+
+func UnloadPlayerTexture() {
+	rl.UnloadTexture(playerSprite)
 }
