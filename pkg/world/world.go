@@ -79,8 +79,15 @@ func DrawWorld() {
 		}
 	}
 
-	for i := 0; i < len(WaterTiles); i++ {
-		s, _ := strconv.ParseInt(WaterTiles[i].Id, 10, 64)
+	RenderLayer(WaterTiles)
+	RenderLayer(groundTiles)
+	RenderLayer(Structures)
+	RenderLayer(Furniture)
+}
+
+func RenderLayer(Layer []Tile) {
+	for i := 0; i < len(Layer); i++ {
+		s, _ := strconv.ParseInt(Layer[i].Id, 10, 64)
 		tileId := int(s)
 		tex = spritesheetMap
 
@@ -88,53 +95,8 @@ func DrawWorld() {
 		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
 		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
 
-		tileDest.X = float32(WaterTiles[i].X * WorldMap.TileSize)
-		tileDest.Y = float32(WaterTiles[i].Y * WorldMap.TileSize)
-
-		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-	}
-
-	for i := 0; i < len(groundTiles); i++ {
-		s, _ := strconv.ParseInt(groundTiles[i].Id, 10, 64)
-		tileId := int(s)
-		tex = spritesheetMap
-
-		texColumns := tex.Width / int32(WorldMap.TileSize)
-		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
-		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
-
-		tileDest.X = float32(groundTiles[i].X * WorldMap.TileSize)
-		tileDest.Y = float32(groundTiles[i].Y * WorldMap.TileSize)
-
-		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-	}
-
-	for i := 0; i < len(Structures); i++ {
-		s, _ := strconv.ParseInt(Structures[i].Id, 10, 64)
-		tileId := int(s)
-		tex = spritesheetMap
-
-		texColumns := tex.Width / int32(WorldMap.TileSize)
-		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
-		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
-
-		tileDest.X = float32(Structures[i].X * WorldMap.TileSize)
-		tileDest.Y = float32(Structures[i].Y * WorldMap.TileSize)
-
-		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-	}
-
-	for i := 0; i < len(Furniture); i++ {
-		s, _ := strconv.ParseInt(Furniture[i].Id, 10, 64)
-		tileId := int(s)
-		tex = spritesheetMap
-
-		texColumns := tex.Width / int32(WorldMap.TileSize)
-		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
-		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
-
-		tileDest.X = float32(Furniture[i].X * WorldMap.TileSize)
-		tileDest.Y = float32(Furniture[i].Y * WorldMap.TileSize)
+		tileDest.X = float32(Layer[i].X * WorldMap.TileSize)
+		tileDest.Y = float32(Layer[i].Y * WorldMap.TileSize)
 
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
