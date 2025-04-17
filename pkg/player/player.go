@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -81,10 +80,7 @@ func PlayerInput() {
 }
 
 func PlayerMoving() {
-	oldX, oldY := playerDest.X, playerDest.Y
-
-	fmt.Println(oldX, oldY)
-
+	oldX, oldY = playerDest.X, playerDest.Y
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
 	if playerMoving {
@@ -141,24 +137,29 @@ func PlayerMoving() {
 	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
 	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
 
-	var waterTiles = world.WaterTiles
-	var jsonMap = world.WorldMap
-
-	for i := 0; i < len(waterTiles); i++ {
-		if playerHitBox.X < float32(waterTiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
-			playerHitBox.X+playerHitBox.Width > float32(waterTiles[i].X*jsonMap.TileSize) &&
-			playerHitBox.Y < float32(waterTiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
-			playerHitBox.Y+playerHitBox.Height > float32(waterTiles[i].Y*jsonMap.TileSize) {
-
-			playerDest.X = oldX
-			playerDest.Y = oldY
-		}
-	}
+	PlayerCollision(world.WaterTiles)
+	PlayerCollision(world.Structures)
+	PlayerCollision(world.Furniture)
 
 	Cam.Target = rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2)))
 
 	playerMoving = false
 	playerUp, playerDown, playerLeft, playerRight = false, false, false, false
+}
+
+func PlayerCollision(tiles []world.Tile) {
+	var jsonMap = world.WorldMap
+
+	for i := 0; i < len(tiles); i++ {
+		if playerHitBox.X < float32(tiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
+			playerHitBox.X+playerHitBox.Width > float32(tiles[i].X*jsonMap.TileSize) &&
+			playerHitBox.Y < float32(tiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
+			playerHitBox.Y+playerHitBox.Height > float32(tiles[i].Y*jsonMap.TileSize) {
+
+			playerDest.X = oldX
+			playerDest.Y = oldY
+		}
+	}
 }
 
 func UnloadPlayerTexture() {

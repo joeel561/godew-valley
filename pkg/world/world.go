@@ -2,6 +2,7 @@ package world
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -15,9 +16,14 @@ var (
 	WorldMap       JsonMap
 	spritesheetMap rl.Texture2D
 	tex            rl.Texture2D
+	doorSprite     rl.Texture2D
+	doorSrc        rl.Rectangle
+	doorDest       rl.Rectangle
 	WaterTiles     []Tile
 	Structures     []Tile
 	Furniture      []Tile
+	WalkableWater  []Tile
+	Paths          []Tile
 )
 
 type JsonMap struct {
@@ -56,6 +62,9 @@ func InitWorld() {
 	spritesheetMap = rl.LoadTexture("assets/spritesheet.png")
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
+	doorSprite = rl.LoadTexture("assets/Tilesets/building-parts/dooranimationsprites.png")
+	doorSrc = rl.NewRectangle(0, 0, 16, 16)
+	doorDest = rl.NewRectangle(476, 301, 16, 16)
 }
 
 func DrawWorld() {
@@ -77,11 +86,29 @@ func DrawWorld() {
 		if WorldMap.Layers[i].Name == "Furniture" {
 			Furniture = WorldMap.Layers[i].Tiles
 		}
+
+		if WorldMap.Layers[i].Name == "WalkableWater" {
+			WalkableWater = WorldMap.Layers[i].Tiles
+		}
+
+		if WorldMap.Layers[i].Name == "Paths" {
+			Paths = WorldMap.Layers[i].Tiles
+		}
 	}
 
+	fmt.Println("Door Source: ", doorSrc)
+	fmt.Println("Door Dest: ", doorDest)
+	fmt.Println("Door Texture: ", doorSprite)
+
+	rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
+
+	rl.DrawTexturePro(doorSprite, doorSrc, doorDest, rl.NewVector2(0, 0), 0, rl.White)
+
 	RenderLayer(WaterTiles)
+	RenderLayer(WalkableWater)
 	RenderLayer(groundTiles)
 	RenderLayer(Structures)
+	RenderLayer(Paths)
 	RenderLayer(Furniture)
 }
 
