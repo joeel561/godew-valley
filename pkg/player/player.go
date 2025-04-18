@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -16,15 +17,17 @@ var (
 	oldX, oldY   float32
 
 	playerSrc                                     rl.Rectangle
-	playerDest                                    rl.Rectangle
+	PlayerDest                                    rl.Rectangle
 	playerMoving                                  bool
 	playerDir                                     int
 	playerUp, playerDown, playerLeft, playerRight bool
 	playerFrame                                   int
-	playerHitBox                                  rl.Rectangle
+	PlayerHitBox                                  rl.Rectangle
 	playerHitBoxYOffset                           float32 = 3
 
 	frameCount int
+	frameDoor  int     = 0
+	timer      float64 = 0.0
 
 	playerSpeed float32 = 1.4
 
@@ -36,15 +39,15 @@ func InitPlayer() {
 
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
 
-	playerDest = rl.NewRectangle(370, 270, 60, 60)
-	playerHitBox = rl.NewRectangle(0, 0, 10, 10)
+	PlayerDest = rl.NewRectangle(370, 270, 60, 60)
+	PlayerHitBox = rl.NewRectangle(0, 0, 10, 10)
 
 	Cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
-		rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2))), 0, 2)
+		rl.NewVector2(float32(PlayerDest.X-(PlayerDest.Width/2)), float32(PlayerDest.Y-(PlayerDest.Height/2))), 0, 2)
 }
 
 func DrawPlayerTexture() {
-	rl.DrawTexturePro(playerSprite, playerSrc, playerDest, rl.NewVector2(0, 0), 0, rl.White)
+	rl.DrawTexturePro(playerSprite, playerSrc, PlayerDest, rl.NewVector2(0, 0), 0, rl.White)
 }
 
 func PlayerInput() {
@@ -80,26 +83,26 @@ func PlayerInput() {
 }
 
 func PlayerMoving() {
-	oldX, oldY = playerDest.X, playerDest.Y
+	oldX, oldY = PlayerDest.X, PlayerDest.Y
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
 	if playerMoving {
 		if playerUp {
-			playerDest.Y -= playerSpeed
+			PlayerDest.Y -= playerSpeed
 
 			if playerSpeed == 2 {
 				playerDir = 9
 			}
 		}
 		if playerDown {
-			playerDest.Y += playerSpeed
+			PlayerDest.Y += playerSpeed
 
 			if playerSpeed == 2 {
 				playerDir = 8
 			}
 		}
 		if playerLeft {
-			playerDest.X -= playerSpeed
+			PlayerDest.X -= playerSpeed
 
 			if playerSpeed == 2 {
 				playerDir = 11
@@ -107,7 +110,7 @@ func PlayerMoving() {
 
 		}
 		if playerRight {
-			playerDest.X += playerSpeed
+			PlayerDest.X += playerSpeed
 
 			if playerSpeed == 2 {
 				playerDir = 10
@@ -131,35 +134,66 @@ func PlayerMoving() {
 		playerFrame = 0
 	}
 
+	PlayerOpenDoor()
+
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
-	playerHitBox.X = playerDest.X + (playerDest.Width / 2) - playerHitBox.Width/2
-	playerHitBox.Y = playerDest.Y + (playerDest.Height / 2) + playerHitBoxYOffset
+	PlayerHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerHitBox.Width/2
+	PlayerHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + playerHitBoxYOffset
 
 	PlayerCollision(world.WaterTiles)
 	PlayerCollision(world.Structures)
 	PlayerCollision(world.Furniture)
 
-	Cam.Target = rl.NewVector2(float32(playerDest.X-(playerDest.Width/2)), float32(playerDest.Y-(playerDest.Height/2)))
+	Cam.Target = rl.NewVector2(float32(PlayerDest.X-(PlayerDest.Width/2)), float32(PlayerDest.Y-(PlayerDest.Height/2)))
 
 	playerMoving = false
 	playerUp, playerDown, playerLeft, playerRight = false, false, false, false
+
 }
 
 func PlayerCollision(tiles []world.Tile) {
 	var jsonMap = world.WorldMap
 
 	for i := 0; i < len(tiles); i++ {
-		if playerHitBox.X < float32(tiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
-			playerHitBox.X+playerHitBox.Width > float32(tiles[i].X*jsonMap.TileSize) &&
-			playerHitBox.Y < float32(tiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
-			playerHitBox.Y+playerHitBox.Height > float32(tiles[i].Y*jsonMap.TileSize) {
+		if PlayerHitBox.X < float32(tiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
+			PlayerHitBox.X+PlayerHitBox.Width > float32(tiles[i].X*jsonMap.TileSize) &&
+			PlayerHitBox.Y < float32(tiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
+			PlayerHitBox.Y+PlayerHitBox.Height > float32(tiles[i].Y*jsonMap.TileSize) {
 
-			playerDest.X = oldX
-			playerDest.Y = oldY
+			PlayerDest.X = oldX
+			PlayerDest.Y = oldY
 		}
 	}
+}
+
+func PlayerOpenDoor() {
+	var maxFrames = 6
+
+	if PlayerHitBox.X < float32(world.DoorDest.X+world.DoorDest.Width) &&
+		PlayerHitBox.X+PlayerHitBox.Width > float32(world.DoorDest.X) &&
+		PlayerHitBox.Y < float32(world.DoorDest.Y+world.DoorDest.Height) &&
+		PlayerHitBox.Y+PlayerHitBox.Height > float32(world.DoorDest.Y) {
+		fmt.Println("Door Dest: ", world.DoorDest.X, world.DoorDest.Y)
+
+		timer = rl.GetTime()
+
+		if timer >= 0.2 {
+			timer = 0
+			frameDoor++
+			fmt.Println("Door Frame: ", timer)
+
+		}
+
+		fmt.Println("Door outside: ", frameDoor)
+
+		world.DoorSrc.X = float32(world.DoorSrc.Width) * float32(frameDoor)
+
+		frameDoor = frameDoor % maxFrames
+
+	}
+
 }
 
 func UnloadPlayerTexture() {

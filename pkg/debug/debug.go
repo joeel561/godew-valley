@@ -9,7 +9,6 @@ import (
 
 var (
 	playerSrc                                     rl.Rectangle
-	playerDest                                    rl.Rectangle
 	playerMoving                                  bool
 	playerDir                                     int
 	playerUp, playerDown, playerLeft, playerRight bool
@@ -38,7 +37,8 @@ func DebugText() []string {
 		fmt.Sprintf("Player Frame: %v", playerFrame),
 		fmt.Sprintf("Player Moving: %v", playerMoving),
 		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
-		fmt.Sprintf("Player Dest %v", rectToString(playerDest)),
+		fmt.Sprintf("Player Dest %v", rectToString(player.PlayerDest)),
+		fmt.Sprintf("Player Hitbox %v", rectToString(player.PlayerHitBox)),
 		fmt.Sprintf("Music Paused: %v", musicPaused),
 	}
 }
@@ -67,6 +67,6 @@ func DrawPlayerOutlines() {
 	rl.DrawText("Y", int32(-2), int32(22), int32(10), rl.Black)
 
 	// Draw collision rectangle
-	rl.DrawRectangleLinesEx(playerHitBox, 1, rl.Green)
-	rl.DrawRectangleLinesEx(playerDest, 1, rl.Purple)
+	rl.DrawRectangleLinesEx(player.PlayerHitBox, 1, rl.Green)
+	rl.DrawRectangleLinesEx(player.PlayerDest, 1, rl.Purple)
 }
