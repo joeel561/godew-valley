@@ -2,6 +2,7 @@ package main
 
 import (
 	"godew-valley/pkg/debug"
+	"godew-valley/pkg/doors"
 	"godew-valley/pkg/player"
 	"godew-valley/pkg/world"
 
@@ -25,6 +26,8 @@ var (
 func drawScene() {
 	world.DrawWorld()
 
+	doors.DrawDoors()
+
 	if printDebug {
 		debug.DrawPlayerOutlines()
 	}
@@ -38,6 +41,7 @@ func init() {
 	rl.SetTargetFPS(60)
 
 	world.InitWorld()
+	doors.InitDoors()
 	player.InitPlayer()
 
 	rl.InitAudioDevice()

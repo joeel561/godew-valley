@@ -1,7 +1,7 @@
 package player
 
 import (
-	"fmt"
+	"godew-valley/pkg/doors"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -26,8 +26,6 @@ var (
 	playerHitBoxYOffset                           float32 = 3
 
 	frameCount int
-	frameDoor  int     = 0
-	timer      float64 = 0.0
 
 	playerSpeed float32 = 1.4
 
@@ -120,6 +118,9 @@ func PlayerMoving() {
 		if frameCount%8 == 1 {
 			playerFrame++
 		}
+
+		PlayerOpenHouseDoor()
+		PlayerOpenBarnDoor()
 	} else if frameCount%45 == 1 {
 		playerFrame++
 
@@ -133,8 +134,6 @@ func PlayerMoving() {
 	if !playerMoving && playerFrame > 1 {
 		playerFrame = 0
 	}
-
-	PlayerOpenDoor()
 
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
@@ -168,32 +167,28 @@ func PlayerCollision(tiles []world.Tile) {
 	}
 }
 
-func PlayerOpenDoor() {
-	var maxFrames = 6
+func PlayerOpenHouseDoor() {
+	doors.HouseDoorSrc.X = 80
 
-	if PlayerHitBox.X < float32(world.DoorDest.X+world.DoorDest.Width) &&
-		PlayerHitBox.X+PlayerHitBox.Width > float32(world.DoorDest.X) &&
-		PlayerHitBox.Y < float32(world.DoorDest.Y+world.DoorDest.Height) &&
-		PlayerHitBox.Y+PlayerHitBox.Height > float32(world.DoorDest.Y) {
-		fmt.Println("Door Dest: ", world.DoorDest.X, world.DoorDest.Y)
+	if PlayerHitBox.X < float32(doors.HouseDoorDest.X+doors.HouseDoorDest.Width) &&
+		PlayerHitBox.X+PlayerHitBox.Width > float32(doors.HouseDoorDest.X) &&
+		PlayerHitBox.Y < float32(doors.HouseDoorDest.Y+doors.HouseDoorDest.Height) &&
+		PlayerHitBox.Y+PlayerHitBox.Height > float32(doors.HouseDoorDest.Y) {
 
-		timer = rl.GetTime()
-
-		if timer >= 0.2 {
-			timer = 0
-			frameDoor++
-			fmt.Println("Door Frame: ", timer)
-
-		}
-
-		fmt.Println("Door outside: ", frameDoor)
-
-		world.DoorSrc.X = float32(world.DoorSrc.Width) * float32(frameDoor)
-
-		frameDoor = frameDoor % maxFrames
-
+		doors.OpenHouseDoor()
 	}
+}
 
+func PlayerOpenBarnDoor() {
+	doors.BarnDoorSrc.X = 240
+
+	if PlayerHitBox.X < float32(doors.BarnDoorDest.X+doors.BarnDoorDest.Width) &&
+		PlayerHitBox.X+PlayerHitBox.Width > float32(doors.BarnDoorDest.X) &&
+		PlayerHitBox.Y < float32(doors.BarnDoorDest.Y+doors.BarnDoorDest.Height) &&
+		PlayerHitBox.Y+PlayerHitBox.Height > float32(doors.BarnDoorDest.Y) {
+
+		doors.OpenBarnDoor()
+	}
 }
 
 func UnloadPlayerTexture() {

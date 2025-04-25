@@ -61,9 +61,6 @@ func InitWorld() {
 	spritesheetMap = rl.LoadTexture("assets/spritesheet.png")
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
-	doorSprite = rl.LoadTexture("assets/Tilesets/building-parts/dooranimationsprites.png")
-	DoorSrc = rl.NewRectangle(0, 0, 16, 16)
-	DoorDest = rl.NewRectangle(528, 352, 16, 16)
 }
 
 func DrawWorld() {
@@ -103,8 +100,6 @@ func DrawWorld() {
 	RenderLayer(Structures)
 	RenderLayer(Paths)
 	RenderLayer(Furniture)
-
-	rl.DrawTexturePro(doorSprite, DoorSrc, DoorDest, rl.NewVector2(0, 0), 0, rl.White)
 }
 
 func RenderLayer(Layer []Tile) {
