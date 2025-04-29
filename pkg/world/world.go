@@ -13,7 +13,7 @@ var (
 	tileDest       rl.Rectangle
 	tileSrc        rl.Rectangle
 	WorldMap       JsonMap
-	spritesheetMap rl.Texture2D
+	SpritesheetMap rl.Texture2D
 	tex            rl.Texture2D
 	doorSprite     rl.Texture2D
 	DoorSrc        rl.Rectangle
@@ -23,6 +23,7 @@ var (
 	Furniture      []Tile
 	WalkableWater  []Tile
 	Paths          []Tile
+	ItemBarTiles   []Tile
 )
 
 type JsonMap struct {
@@ -58,7 +59,7 @@ func LoadMap(mapFile string) {
 }
 
 func InitWorld() {
-	spritesheetMap = rl.LoadTexture("assets/spritesheet.png")
+	SpritesheetMap = rl.LoadTexture("assets/spritesheet.png")
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 }
@@ -90,6 +91,10 @@ func DrawWorld() {
 		if WorldMap.Layers[i].Name == "Paths" {
 			Paths = WorldMap.Layers[i].Tiles
 		}
+
+		if WorldMap.Layers[i].Name == "ItemBar" {
+			ItemBarTiles = WorldMap.Layers[i].Tiles
+		}
 	}
 
 	rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
@@ -106,7 +111,7 @@ func RenderLayer(Layer []Tile) {
 	for i := 0; i < len(Layer); i++ {
 		s, _ := strconv.ParseInt(Layer[i].Id, 10, 64)
 		tileId := int(s)
-		tex = spritesheetMap
+		tex = SpritesheetMap
 
 		texColumns := tex.Width / int32(WorldMap.TileSize)
 		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
@@ -120,5 +125,5 @@ func RenderLayer(Layer []Tile) {
 }
 
 func UnloadWorldTexture() {
-	rl.UnloadTexture(spritesheetMap)
+	rl.UnloadTexture(SpritesheetMap)
 }

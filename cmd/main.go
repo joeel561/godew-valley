@@ -3,6 +3,7 @@ package main
 import (
 	"godew-valley/pkg/debug"
 	"godew-valley/pkg/doors"
+	"godew-valley/pkg/itembar"
 	"godew-valley/pkg/player"
 	"godew-valley/pkg/world"
 
@@ -101,6 +102,7 @@ func render() {
 	rl.EndMode2D()
 
 	if printDebug {
+		itembar.DrawItemBar()
 		debug.DrawDebug(debug.DebugText())
 	}
 
