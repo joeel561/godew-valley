@@ -2,9 +2,8 @@ package main
 
 import (
 	"godew-valley/pkg/debug"
-	"godew-valley/pkg/doors"
-	"godew-valley/pkg/itembar"
 	"godew-valley/pkg/player"
+	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -27,7 +26,7 @@ var (
 func drawScene() {
 	world.DrawWorld()
 
-	doors.DrawDoors()
+	world.DrawDoors()
 
 	if printDebug {
 		debug.DrawPlayerOutlines()
@@ -42,8 +41,9 @@ func init() {
 	rl.SetTargetFPS(60)
 
 	world.InitWorld()
-	doors.InitDoors()
+	world.InitDoors()
 	player.InitPlayer()
+	userinterface.InitUserInterface()
 
 	rl.InitAudioDevice()
 	music = rl.LoadMusicStream("assets/bgmusic.mp3")
@@ -54,6 +54,8 @@ func init() {
 	printDebug = false
 
 	world.LoadMap("pkg/world/world.json")
+
+	userinterface.LoadUserInterfaceMap("pkg/userinterface/userinterface.json")
 }
 
 func input() {
@@ -101,8 +103,8 @@ func render() {
 	drawScene()
 	rl.EndMode2D()
 
+	userinterface.DrawUserInterface()
 	if printDebug {
-		itembar.DrawItemBar()
 		debug.DrawDebug(debug.DebugText())
 	}
 
@@ -112,6 +114,7 @@ func render() {
 func quit() {
 	player.UnloadPlayerTexture()
 	world.UnloadWorldTexture()
+	userinterface.UnloadUserInterface()
 	rl.UnloadMusicStream(music)
 	rl.CloseAudioDevice()
 	rl.CloseWindow()

@@ -91,10 +91,6 @@ func DrawWorld() {
 		if WorldMap.Layers[i].Name == "Paths" {
 			Paths = WorldMap.Layers[i].Tiles
 		}
-
-		if WorldMap.Layers[i].Name == "ItemBar" {
-			ItemBarTiles = WorldMap.Layers[i].Tiles
-		}
 	}
 
 	rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)

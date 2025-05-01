@@ -1,7 +1,6 @@
 package player
 
 import (
-	"godew-valley/pkg/doors"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -168,26 +167,26 @@ func PlayerCollision(tiles []world.Tile) {
 }
 
 func PlayerOpenHouseDoor() {
-	doors.HouseDoorSrc.X = 80
+	world.HouseDoorSrc.X = 80
 
-	if PlayerHitBox.X < float32(doors.HouseDoorDest.X+doors.HouseDoorDest.Width) &&
-		PlayerHitBox.X+PlayerHitBox.Width > float32(doors.HouseDoorDest.X) &&
-		PlayerHitBox.Y < float32(doors.HouseDoorDest.Y+doors.HouseDoorDest.Height) &&
-		PlayerHitBox.Y+PlayerHitBox.Height > float32(doors.HouseDoorDest.Y) {
+	if PlayerHitBox.X < float32(world.HouseDoorDest.X+world.HouseDoorDest.Width) &&
+		PlayerHitBox.X+PlayerHitBox.Width > float32(world.HouseDoorDest.X) &&
+		PlayerHitBox.Y < float32(world.HouseDoorDest.Y+world.HouseDoorDest.Height) &&
+		PlayerHitBox.Y+PlayerHitBox.Height > float32(world.HouseDoorDest.Y) {
 
-		doors.OpenHouseDoor()
+		world.OpenHouseDoor()
 	}
 }
 
 func PlayerOpenBarnDoor() {
-	doors.BarnDoorSrc.X = 240
+	world.BarnDoorSrc.X = 240
 
-	if PlayerHitBox.X < float32(doors.BarnDoorDest.X+doors.BarnDoorDest.Width) &&
-		PlayerHitBox.X+PlayerHitBox.Width > float32(doors.BarnDoorDest.X) &&
-		PlayerHitBox.Y < float32(doors.BarnDoorDest.Y+doors.BarnDoorDest.Height) &&
-		PlayerHitBox.Y+PlayerHitBox.Height > float32(doors.BarnDoorDest.Y) {
+	if PlayerHitBox.X < float32(world.BarnDoorDest.X+world.BarnDoorDest.Width) &&
+		PlayerHitBox.X+PlayerHitBox.Width > float32(world.BarnDoorDest.X) &&
+		PlayerHitBox.Y < float32(world.BarnDoorDest.Y+world.BarnDoorDest.Height) &&
+		PlayerHitBox.Y+PlayerHitBox.Height > float32(world.BarnDoorDest.Y) {
 
-		doors.OpenBarnDoor()
+		world.OpenBarnDoor()
 	}
 }
 
