@@ -78,6 +78,12 @@ func input() {
 	if rl.IsKeyPressed(rl.KeyQ) {
 		musicPaused = !musicPaused
 	}
+
+	if rl.IsKeyPressed(rl.KeyEscape) {
+		running = false
+	}
+
+	userinterface.ItemBarInput()
 }
 
 func update() {

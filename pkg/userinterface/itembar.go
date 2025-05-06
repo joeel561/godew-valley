@@ -2,6 +2,7 @@ package userinterface
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -22,6 +23,7 @@ var (
 	tex           rl.Texture2D
 	texColumns    int32
 	buttonSprite  rl.Texture2D
+	hotbar        Hotbar
 )
 
 type jsonMap struct {
@@ -42,11 +44,26 @@ type Tile struct {
 	Y  int    `json:"y"`
 }
 
+type Item struct {
+	Name string
+	Icon rl.Texture2D
+}
+
+type Hotbar struct {
+	Slots         []Item
+	SelectedIndex int
+}
+
 func InitUserInterface() {
 	spritesheet = rl.LoadTexture("assets/userinterface/userinterfacespritesheet.png")
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	buttonSprite = rl.LoadTexture("assets/userinterface/squarebutton.png")
+
+	hotbar = Hotbar{
+		Slots:         make([]Item, 9),
+		SelectedIndex: 0,
+	}
 }
 
 func LoadUserInterfaceMap(mapFile string) {
@@ -77,34 +94,25 @@ func DrawUserInterface() {
 	DrawItemBar()
 }
 
-type Item struct {
-	Name string
-	Icon rl.Texture2D
-}
-
-type Hotbar struct {
-	Slots         []Item
-	SelectedIndex int
-}
-
 func DrawItemBar() {
-	hotbar := Hotbar{
-		Slots:         make([]Item, 5),
-		SelectedIndex: 0,
-	}
 
-	buttonSrc := rl.NewRectangle(0, 0, 32, 32)
+	buttonSrc := rl.NewRectangle(96, 48, 48, 48)
+	buttonDest := rl.NewRectangle(0, 0, 48, 48)
 
-	buttonDest := rl.NewRectangle(0, 0, 32, 32)
+	buttonSelected := rl.NewRectangle(96, 96, 48, 48)
+	buttonSelectedDest := rl.NewRectangle(0, 0, 48, 48)
 
 	for i := 0; i < len(hotbar.Slots); i++ {
-		x := int32(screenWidth/2 - 160 + (i * 32))
-		y := int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 11)
+		x := int32(screenWidth/2 - 152 + (i * 32))
+		y := int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 2)
 		buttonDest.X = float32(x)
 		buttonDest.Y = float32(y)
 
+		buttonSelectedDest.X = float32(x)
+		buttonSelectedDest.Y = float32(y)
+
 		if i == hotbar.SelectedIndex {
-			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawTexturePro(buttonSprite, buttonSelected, buttonSelectedDest, rl.NewVector2(0, 0), 0, rl.White)
 		} else {
 			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 		}
@@ -125,6 +133,30 @@ func renderItemBarLayer(Layer []Tile) {
 		tileDest.Y = float32(Layer[i].Y*UserInterface.TileSize) + float32(screenHeight-UserInterface.MapHeight*UserInterface.TileSize-5)
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 1, rl.White)
 	}
+}
+
+func ItemBarInput() {
+	if rl.IsKeyDown(rl.KeyOne) {
+		hotbar.SelectedIndex = 0
+	} else if rl.IsKeyDown(rl.KeyTwo) {
+		hotbar.SelectedIndex = 1
+	} else if rl.IsKeyDown(rl.KeyThree) {
+		hotbar.SelectedIndex = 2
+	} else if rl.IsKeyDown(rl.KeyFour) {
+		hotbar.SelectedIndex = 3
+	} else if rl.IsKeyDown(rl.KeyFive) {
+		hotbar.SelectedIndex = 4
+	} else if rl.IsKeyDown(rl.KeySix) {
+		hotbar.SelectedIndex = 5
+	} else if rl.IsKeyDown(rl.KeySeven) {
+		hotbar.SelectedIndex = 6
+	} else if rl.IsKeyDown(rl.KeyEight) {
+		hotbar.SelectedIndex = 7
+	} else if rl.IsKeyDown(rl.KeyNine) {
+		hotbar.SelectedIndex = 8
+	}
+
+	fmt.Println("Selected Index:", hotbar.SelectedIndex)
 }
 
 func UnloadUserInterface() {
