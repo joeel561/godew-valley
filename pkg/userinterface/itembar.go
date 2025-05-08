@@ -58,10 +58,10 @@ func InitUserInterface() {
 	spritesheet = rl.LoadTexture("assets/userinterface/userinterfacespritesheet.png")
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
-	buttonSprite = rl.LoadTexture("assets/userinterface/squarebutton.png")
+	buttonSprite = rl.LoadTexture("assets/userinterface/Inventory_Spritesheet.png")
 
 	hotbar = Hotbar{
-		Slots:         make([]Item, 9),
+		Slots:         make([]Item, 10),
 		SelectedIndex: 0,
 	}
 }
@@ -96,14 +96,17 @@ func DrawUserInterface() {
 
 func DrawItemBar() {
 
-	buttonSrc := rl.NewRectangle(96, 48, 48, 48)
+	buttonSrc := rl.NewRectangle(224, 112, 48, 48)
 	buttonDest := rl.NewRectangle(0, 0, 48, 48)
 
-	buttonSelected := rl.NewRectangle(96, 96, 48, 48)
+	buttonSelected := rl.NewRectangle(272, 112, 48, 48)
 	buttonSelectedDest := rl.NewRectangle(0, 0, 48, 48)
 
+	buttonActive := rl.NewRectangle(224, 0, 48, 48)
+	buttonActiveDest := rl.NewRectangle(0, 0, 48, 48)
+
 	for i := 0; i < len(hotbar.Slots); i++ {
-		x := int32(screenWidth/2 - 152 + (i * 32))
+		x := int32(screenWidth/2 - 182 + (i * 35))
 		y := int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 2)
 		buttonDest.X = float32(x)
 		buttonDest.Y = float32(y)
@@ -111,8 +114,12 @@ func DrawItemBar() {
 		buttonSelectedDest.X = float32(x)
 		buttonSelectedDest.Y = float32(y)
 
+		buttonActiveDest.X = float32(x)
+		buttonActiveDest.Y = float32(y)
+
 		if i == hotbar.SelectedIndex {
 			rl.DrawTexturePro(buttonSprite, buttonSelected, buttonSelectedDest, rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawTexturePro(buttonSprite, buttonActive, buttonActiveDest, rl.NewVector2(0, 0), 0, rl.White)
 		} else {
 			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 		}
@@ -136,24 +143,13 @@ func renderItemBarLayer(Layer []Tile) {
 }
 
 func ItemBarInput() {
-	if rl.IsKeyDown(rl.KeyOne) {
-		hotbar.SelectedIndex = 0
-	} else if rl.IsKeyDown(rl.KeyTwo) {
-		hotbar.SelectedIndex = 1
-	} else if rl.IsKeyDown(rl.KeyThree) {
-		hotbar.SelectedIndex = 2
-	} else if rl.IsKeyDown(rl.KeyFour) {
-		hotbar.SelectedIndex = 3
-	} else if rl.IsKeyDown(rl.KeyFive) {
-		hotbar.SelectedIndex = 4
-	} else if rl.IsKeyDown(rl.KeySix) {
-		hotbar.SelectedIndex = 5
-	} else if rl.IsKeyDown(rl.KeySeven) {
-		hotbar.SelectedIndex = 6
-	} else if rl.IsKeyDown(rl.KeyEight) {
-		hotbar.SelectedIndex = 7
-	} else if rl.IsKeyDown(rl.KeyNine) {
-		hotbar.SelectedIndex = 8
+	key := rl.GetKeyPressed()
+	if key >= rl.KeyOne && key <= rl.KeyNine {
+		hotbar.SelectedIndex = int(key) - rl.KeyOne
+	}
+
+	if key == rl.KeyZero {
+		hotbar.SelectedIndex = 9
 	}
 
 	fmt.Println("Selected Index:", hotbar.SelectedIndex)
