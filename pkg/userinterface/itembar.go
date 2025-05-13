@@ -115,7 +115,7 @@ func DrawItemBar() {
 		buttonSelectedDest.Y = float32(y)
 
 		buttonActiveDest.X = float32(x)
-		buttonActiveDest.Y = float32(y)
+		buttonActiveDest.Y = float32(y + 4)
 
 		if i == hotbar.SelectedIndex {
 			rl.DrawTexturePro(buttonSprite, buttonSelected, buttonSelectedDest, rl.NewVector2(0, 0), 0, rl.White)
@@ -152,7 +152,23 @@ func ItemBarInput() {
 		hotbar.SelectedIndex = 9
 	}
 
-	fmt.Println("Selected Index:", hotbar.SelectedIndex)
+	scrollPosition := rl.GetMouseWheelMove()
+
+	if scrollPosition > 0 {
+		hotbar.SelectedIndex--
+		if hotbar.SelectedIndex < 0 {
+			hotbar.SelectedIndex = 9
+		}
+	}
+
+	if scrollPosition < 0 {
+		hotbar.SelectedIndex++
+		if hotbar.SelectedIndex > 9 {
+			hotbar.SelectedIndex = 0
+		}
+	}
+
+	fmt.Println("scroll:", scrollPosition)
 }
 
 func UnloadUserInterface() {

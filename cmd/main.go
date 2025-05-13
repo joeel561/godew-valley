@@ -28,6 +28,8 @@ func drawScene() {
 
 	world.DrawDoors()
 
+	world.DrawAxe()
+
 	if printDebug {
 		debug.DrawPlayerOutlines()
 	}
@@ -42,6 +44,7 @@ func init() {
 
 	world.InitWorld()
 	world.InitDoors()
+	world.InitAxe()
 	player.InitPlayer()
 	userinterface.InitUserInterface()
 
