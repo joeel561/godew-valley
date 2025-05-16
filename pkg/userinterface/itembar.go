@@ -23,7 +23,7 @@ var (
 	tex           rl.Texture2D
 	texColumns    int32
 	buttonSprite  rl.Texture2D
-	hotbar        Hotbar
+	PlayerHotbar  Hotbar
 )
 
 type jsonMap struct {
@@ -45,8 +45,11 @@ type Tile struct {
 }
 
 type Item struct {
-	Name string
-	Icon rl.Texture2D
+	Name     string
+	Icon     rl.Texture2D
+	Quantity int
+	X        int32
+	Y        int32
 }
 
 type Hotbar struct {
@@ -60,7 +63,7 @@ func InitUserInterface() {
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 	buttonSprite = rl.LoadTexture("assets/userinterface/Inventory_Spritesheet.png")
 
-	hotbar = Hotbar{
+	PlayerHotbar = Hotbar{
 		Slots:         make([]Item, 10),
 		SelectedIndex: 0,
 	}
@@ -92,6 +95,7 @@ func DrawUserInterface() {
 	renderItemBarLayer(itembar)
 
 	DrawItemBar()
+	rl.DrawText("test", 418, 738, 20, rl.White)
 }
 
 func DrawItemBar() {
@@ -105,19 +109,19 @@ func DrawItemBar() {
 	buttonActive := rl.NewRectangle(224, 0, 48, 48)
 	buttonActiveDest := rl.NewRectangle(0, 0, 48, 48)
 
-	for i := 0; i < len(hotbar.Slots); i++ {
-		x := int32(screenWidth/2 - 182 + (i * 35))
-		y := int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 2)
-		buttonDest.X = float32(x)
-		buttonDest.Y = float32(y)
+	for i := 0; i < len(PlayerHotbar.Slots); i++ {
+		PlayerHotbar.Slots[i].X = int32(screenWidth/2 - 182 + (i * 35))
+		PlayerHotbar.Slots[i].Y = int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 2)
+		buttonDest.X = float32(PlayerHotbar.Slots[i].X)
+		buttonDest.Y = float32(PlayerHotbar.Slots[i].Y)
 
-		buttonSelectedDest.X = float32(x)
-		buttonSelectedDest.Y = float32(y)
+		buttonSelectedDest.X = float32(PlayerHotbar.Slots[i].X)
+		buttonSelectedDest.Y = float32(PlayerHotbar.Slots[i].Y)
 
-		buttonActiveDest.X = float32(x)
-		buttonActiveDest.Y = float32(y + 4)
+		buttonActiveDest.X = float32(PlayerHotbar.Slots[i].X)
+		buttonActiveDest.Y = float32(PlayerHotbar.Slots[i].Y + 4)
 
-		if i == hotbar.SelectedIndex {
+		if i == PlayerHotbar.SelectedIndex {
 			rl.DrawTexturePro(buttonSprite, buttonSelected, buttonSelectedDest, rl.NewVector2(0, 0), 0, rl.White)
 			rl.DrawTexturePro(buttonSprite, buttonActive, buttonActiveDest, rl.NewVector2(0, 0), 0, rl.White)
 		} else {
@@ -145,30 +149,53 @@ func renderItemBarLayer(Layer []Tile) {
 func ItemBarInput() {
 	key := rl.GetKeyPressed()
 	if key >= rl.KeyOne && key <= rl.KeyNine {
-		hotbar.SelectedIndex = int(key) - rl.KeyOne
+		PlayerHotbar.SelectedIndex = int(key) - rl.KeyOne
 	}
 
 	if key == rl.KeyZero {
-		hotbar.SelectedIndex = 9
+		PlayerHotbar.SelectedIndex = 9
 	}
 
 	scrollPosition := rl.GetMouseWheelMove()
 
 	if scrollPosition > 0 {
-		hotbar.SelectedIndex--
-		if hotbar.SelectedIndex < 0 {
-			hotbar.SelectedIndex = 9
+		PlayerHotbar.SelectedIndex--
+		if PlayerHotbar.SelectedIndex < 0 {
+			PlayerHotbar.SelectedIndex = 9
 		}
 	}
 
 	if scrollPosition < 0 {
-		hotbar.SelectedIndex++
-		if hotbar.SelectedIndex > 9 {
-			hotbar.SelectedIndex = 0
+		PlayerHotbar.SelectedIndex++
+		if PlayerHotbar.SelectedIndex > 9 {
+			PlayerHotbar.SelectedIndex = 0
+		}
+	}
+}
+
+func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
+	for i := range h.Slots {
+		if h.Slots[i].Name == newItem.Name {
+			h.Slots[i].Quantity += newItem.Quantity
+			return true
 		}
 	}
 
-	fmt.Println("scroll:", scrollPosition)
+	fmt.Println(len(h.Slots), "slots")
+
+	rl.DrawText("test", 418, 738, 20, rl.White)
+
+	for i := range h.Slots {
+		if h.Slots[i].Name == "" {
+			h.Slots[i].Name = newItem.Name
+			fmt.Println("Item name:", h.Slots[i].X, h.Slots[i].Y)
+			rl.DrawText(newItem.Name, h.Slots[i].X, h.Slots[i].Y, 20, rl.White)
+			rl.DrawTexture(newItem.Icon, h.Slots[i].X, h.Slots[i].Y, rl.White)
+			return true
+		}
+	}
+
+	return false
 }
 
 func UnloadUserInterface() {

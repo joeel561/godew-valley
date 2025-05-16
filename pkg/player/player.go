@@ -1,6 +1,8 @@
 package player
 
 import (
+	"fmt"
+	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -120,6 +122,7 @@ func PlayerMoving() {
 
 		PlayerOpenHouseDoor()
 		PlayerOpenBarnDoor()
+		PlayerItemCollision()
 	} else if frameCount%45 == 1 {
 		playerFrame++
 
@@ -187,6 +190,25 @@ func PlayerOpenBarnDoor() {
 		PlayerHitBox.Y+PlayerHitBox.Height > float32(world.BarnDoorDest.Y) {
 
 		world.OpenBarnDoor()
+	}
+}
+
+func PlayerItemCollision() {
+	if rl.CheckCollisionRecs(PlayerHitBox, world.AxeDest) {
+		pickedUpItem := userinterface.Item{
+			Name:     "Axe",
+			Quantity: 1,
+			Icon:     world.AxeSprite,
+		}
+
+		success := userinterface.PlayerHotbar.AddItemToHotbar(pickedUpItem)
+
+		if success {
+			world.AxeDest.X = 0
+			world.AxeDest.Y = 0
+		} else {
+			fmt.Println("Item not added to hotbar")
+		}
 	}
 }
 
