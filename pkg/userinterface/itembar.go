@@ -47,6 +47,7 @@ type Tile struct {
 type Item struct {
 	Name     string
 	Icon     rl.Texture2D
+	IconSrc  rl.Rectangle
 	Quantity int
 	X        int32
 	Y        int32
@@ -95,11 +96,9 @@ func DrawUserInterface() {
 	renderItemBarLayer(itembar)
 
 	DrawItemBar()
-	rl.DrawText("test", 418, 738, 20, rl.White)
 }
 
 func DrawItemBar() {
-
 	buttonSrc := rl.NewRectangle(224, 112, 48, 48)
 	buttonDest := rl.NewRectangle(0, 0, 48, 48)
 
@@ -126,6 +125,13 @@ func DrawItemBar() {
 			rl.DrawTexturePro(buttonSprite, buttonActive, buttonActiveDest, rl.NewVector2(0, 0), 0, rl.White)
 		} else {
 			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
+		}
+
+		item := PlayerHotbar.Slots[i]
+
+		if item.Name != "" {
+			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
 		}
 	}
 }
@@ -173,6 +179,10 @@ func ItemBarInput() {
 	}
 }
 
+func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
+	return rl.NewRectangle(i.X-s, i.Y-s, i.Width+s*2, i.Height+s*2)
+}
+
 func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
 	for i := range h.Slots {
 		if h.Slots[i].Name == newItem.Name {
@@ -183,14 +193,9 @@ func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
 
 	fmt.Println(len(h.Slots), "slots")
 
-	rl.DrawText("test", 418, 738, 20, rl.White)
-
 	for i := range h.Slots {
 		if h.Slots[i].Name == "" {
-			h.Slots[i].Name = newItem.Name
-			fmt.Println("Item name:", h.Slots[i].X, h.Slots[i].Y)
-			rl.DrawText(newItem.Name, h.Slots[i].X, h.Slots[i].Y, 20, rl.White)
-			rl.DrawTexture(newItem.Icon, h.Slots[i].X, h.Slots[i].Y, rl.White)
+			h.Slots[i] = newItem
 			return true
 		}
 	}

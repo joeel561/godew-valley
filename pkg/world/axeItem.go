@@ -1,6 +1,8 @@
 package world
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -23,6 +25,8 @@ func DrawAxe() {
 	AxeDest.Height = 16
 
 	rl.DrawTexturePro(AxeSprite, AxeSrc, AxeDest, rl.NewVector2(0, 0), 0, rl.White)
+
+	fmt.Println(AxeDest.X, AxeDest.Y)
 }
 
 func UnloadAxe() {

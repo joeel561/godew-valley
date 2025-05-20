@@ -26,9 +26,9 @@ var (
 func drawScene() {
 	world.DrawWorld()
 
-	world.DrawDoors()
-
 	world.DrawAxe()
+
+	world.DrawDoors()
 
 	if printDebug {
 		debug.DrawPlayerOutlines()
@@ -91,7 +91,6 @@ func input() {
 
 func update() {
 	running = !rl.WindowShouldClose()
-
 	player.PlayerMoving()
 
 	//rl.UpdateMusicStream(music)

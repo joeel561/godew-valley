@@ -199,13 +199,16 @@ func PlayerItemCollision() {
 			Name:     "Axe",
 			Quantity: 1,
 			Icon:     world.AxeSprite,
+			IconSrc:  world.AxeSrc,
 		}
 
 		success := userinterface.PlayerHotbar.AddItemToHotbar(pickedUpItem)
+		fmt.Println(world.AxeDest.X, world.AxeDest.Y)
 
 		if success {
-			world.AxeDest.X = 0
-			world.AxeDest.Y = 0
+			world.AxeDest.X = -100
+			world.AxeDest.Y = -100
+			fmt.Println(world.AxeDest.X, world.AxeDest.Y)
 		} else {
 			fmt.Println("Item not added to hotbar")
 		}
