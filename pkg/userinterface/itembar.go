@@ -51,6 +51,7 @@ type Item struct {
 	Quantity int
 	X        int32
 	Y        int32
+	Active   bool
 }
 
 type Hotbar struct {

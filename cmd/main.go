@@ -2,6 +2,7 @@ package main
 
 import (
 	"godew-valley/pkg/debug"
+	"godew-valley/pkg/items"
 	"godew-valley/pkg/player"
 	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
@@ -26,7 +27,7 @@ var (
 func drawScene() {
 	world.DrawWorld()
 
-	world.DrawAxe()
+	items.DrawItems()
 
 	world.DrawDoors()
 
@@ -44,7 +45,7 @@ func init() {
 
 	world.InitWorld()
 	world.InitDoors()
-	world.InitAxe()
+	items.InitItems()
 	player.InitPlayer()
 	userinterface.InitUserInterface()
 
@@ -92,6 +93,7 @@ func input() {
 func update() {
 	running = !rl.WindowShouldClose()
 	player.PlayerMoving()
+	items.UpdateItems()
 
 	//rl.UpdateMusicStream(music)
 	if musicPaused {
