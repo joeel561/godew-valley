@@ -16,14 +16,19 @@ const (
 )
 
 var (
-	UserInterface jsonMap
-	spritesheet   rl.Texture2D
-	tileDest      rl.Rectangle
-	tileSrc       rl.Rectangle
-	tex           rl.Texture2D
-	texColumns    int32
-	buttonSprite  rl.Texture2D
-	PlayerHotbar  Hotbar
+	UserInterface     jsonMap
+	spritesheet       rl.Texture2D
+	tileDest          rl.Rectangle
+	tileSrc           rl.Rectangle
+	tex               rl.Texture2D
+	texColumns        int32
+	buttonSprite      rl.Texture2D
+	PlayerHotbar      Hotbar
+	openInventory     bool
+	PlayerInventory   Hotbar
+	isDragging        bool
+	draggedItem       Item
+	draggedItemSource int
 )
 
 type jsonMap struct {
@@ -69,6 +74,11 @@ func InitUserInterface() {
 		Slots:         make([]Item, 10),
 		SelectedIndex: 0,
 	}
+
+	PlayerInventory = Hotbar{
+		Slots:         make([]Item, 27),
+		SelectedIndex: 0,
+	}
 }
 
 func LoadUserInterfaceMap(mapFile string) {
@@ -87,14 +97,23 @@ func LoadUserInterfaceMap(mapFile string) {
 
 func DrawUserInterface() {
 	var itembar []Tile
+	var inventory []Tile
 
 	for i := 0; i < len(UserInterface.Layers); i++ {
 		if UserInterface.Layers[i].Name == "itembar" {
 			itembar = UserInterface.Layers[i].Tiles
 		}
+
+		if UserInterface.Layers[i].Name == "inventory" {
+			inventory = UserInterface.Layers[i].Tiles
+		}
 	}
 
 	renderItemBarLayer(itembar)
+	if openInventory {
+		renderItemBarLayer(inventory)
+		DrawInventorySlots()
+	}
 
 	DrawItemBar()
 }
@@ -109,9 +128,11 @@ func DrawItemBar() {
 	buttonActive := rl.NewRectangle(224, 0, 48, 48)
 	buttonActiveDest := rl.NewRectangle(0, 0, 48, 48)
 
+	mousePosition := rl.GetMousePosition()
+
 	for i := 0; i < len(PlayerHotbar.Slots); i++ {
 		PlayerHotbar.Slots[i].X = int32(screenWidth/2 - 182 + (i * 35))
-		PlayerHotbar.Slots[i].Y = int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 2)
+		PlayerHotbar.Slots[i].Y = int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 194)
 		buttonDest.X = float32(PlayerHotbar.Slots[i].X)
 		buttonDest.Y = float32(PlayerHotbar.Slots[i].Y)
 
@@ -129,6 +150,22 @@ func DrawItemBar() {
 		}
 
 		item := PlayerHotbar.Slots[i]
+
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+			fmt.Println("Clicked on item bar slot", item.Name)
+			// Set this slot as the selected one
+			PlayerHotbar.SelectedIndex = i
+
+			// Toggle dragging state
+			if item.Name != "" {
+				isDragging = true
+				draggedItem = item
+				draggedItemSource = i
+				// Remove the item from its slot while dragging
+				PlayerHotbar.Slots[i].Name = ""
+				PlayerHotbar.Slots[i].Quantity = 0
+			}
+		}
 
 		if item.Name != "" {
 			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
@@ -178,6 +215,31 @@ func ItemBarInput() {
 			PlayerHotbar.SelectedIndex = 0
 		}
 	}
+	if rl.IsKeyPressed(rl.KeyE) {
+		openInventory = !openInventory
+	}
+
+}
+
+func DrawInventorySlots() {
+	buttonSrc := rl.NewRectangle(224, 112, 48, 48)
+	buttonDest := rl.NewRectangle(0, 0, 48, 48)
+
+	for i := 0; i < len(PlayerInventory.Slots); i++ {
+		PlayerInventory.Slots[i].X = int32(screenWidth/2 - 165 + (i % 9 * 35))
+		PlayerInventory.Slots[i].Y = int32(screenHeight/2 + 170 + (i / 9 * 40))
+		buttonDest.X = float32(PlayerInventory.Slots[i].X)
+		buttonDest.Y = float32(PlayerInventory.Slots[i].Y)
+
+		rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
+
+		item := PlayerInventory.Slots[i]
+
+		if item.Name != "" {
+			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
+		}
+	}
 }
 
 func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
@@ -185,6 +247,7 @@ func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
 }
 
 func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
+
 	for i := range h.Slots {
 		if h.Slots[i].Name == newItem.Name {
 			h.Slots[i].Quantity += newItem.Quantity
