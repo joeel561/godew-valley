@@ -79,9 +79,7 @@ func UpdateItems() {
 				fmt.Println("Item not added to hotbar")
 			}
 		}
-
 	}
-
 }
 
 func UnloadAxe() {

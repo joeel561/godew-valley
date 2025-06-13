@@ -16,19 +16,16 @@ const (
 )
 
 var (
-	UserInterface     jsonMap
-	spritesheet       rl.Texture2D
-	tileDest          rl.Rectangle
-	tileSrc           rl.Rectangle
-	tex               rl.Texture2D
-	texColumns        int32
-	buttonSprite      rl.Texture2D
-	PlayerHotbar      Hotbar
-	openInventory     bool
-	PlayerInventory   Hotbar
-	isDragging        bool
-	draggedItem       Item
-	draggedItemSource int
+	UserInterface   jsonMap
+	spritesheet     rl.Texture2D
+	tileDest        rl.Rectangle
+	tileSrc         rl.Rectangle
+	tex             rl.Texture2D
+	texColumns      int32
+	buttonSprite    rl.Texture2D
+	PlayerHotbar    Hotbar
+	openInventory   bool
+	PlayerInventory Hotbar
 )
 
 type jsonMap struct {
@@ -60,8 +57,11 @@ type Item struct {
 }
 
 type Hotbar struct {
-	Slots         []Item
-	SelectedIndex int
+	Slots             []Item
+	SelectedIndex     int
+	Dragging          bool
+	DraggedItem       Item
+	DraggedItemSource int
 }
 
 func InitUserInterface() {
@@ -151,25 +151,33 @@ func DrawItemBar() {
 
 		item := PlayerHotbar.Slots[i]
 
-		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
-			fmt.Println("Clicked on item bar slot", item.Name)
-			// Set this slot as the selected one
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) && !PlayerHotbar.Dragging {
 			PlayerHotbar.SelectedIndex = i
 
-			// Toggle dragging state
 			if item.Name != "" {
-				isDragging = true
-				draggedItem = item
-				draggedItemSource = i
-				// Remove the item from its slot while dragging
+				PlayerHotbar.Dragging = true
+				PlayerHotbar.DraggedItem = item
+				PlayerHotbar.DraggedItemSource = i
 				PlayerHotbar.Slots[i].Name = ""
 				PlayerHotbar.Slots[i].Quantity = 0
 			}
 		}
 
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonDown(rl.MouseLeftButton) && PlayerHotbar.Dragging && i != PlayerHotbar.DraggedItemSource {
+			PlayerHotbar.Slots[i] = PlayerHotbar.DraggedItem
+			PlayerHotbar.Slots[PlayerHotbar.DraggedItemSource].Name = ""
+			PlayerHotbar.Slots[PlayerHotbar.DraggedItemSource].Quantity = 0
+			PlayerHotbar.Dragging = false
+		}
+
 		if item.Name != "" {
 			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
 			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
+		}
+
+		if PlayerHotbar.Dragging {
+			mouse := rl.GetMousePosition()
+			rl.DrawTexturePro(item.Icon, item.IconSrc, rl.NewRectangle(mouse.X-24, mouse.Y-24, 32, 32), rl.NewVector2(0, 0), 0, rl.White)
 		}
 	}
 }
@@ -233,11 +241,45 @@ func DrawInventorySlots() {
 
 		rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 
+		// sorgt dafuer dass das Item wieder in die Hotbar gelegt wird
+		/* 		if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+			PlayerInventory.SelectedIndex = i
+			if PlayerInventory.Slots[i].Name != "" {
+				PlayerHotbar.AddItemToHotbar(PlayerInventory.Slots[i])
+				PlayerInventory.Slots[i].Name = ""
+				PlayerInventory.Slots[i].Quantity = 0
+			}
+		} */
+		// draggt das item im Inventar
+		if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) && !PlayerHotbar.Dragging {
+			PlayerInventory.SelectedIndex = i
+
+			if PlayerInventory.Slots[i].Name != "" {
+				PlayerInventory.Dragging = true
+				PlayerInventory.DraggedItem = PlayerInventory.Slots[i]
+				PlayerInventory.DraggedItemSource = i
+				PlayerInventory.Slots[i].Name = ""
+				PlayerInventory.Slots[i].Quantity = 0
+			}
+		}
+		//droppt das item aus hotbar ins Inventar
+		if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttonDest) && rl.IsMouseButtonDown(rl.MouseLeftButton) && PlayerHotbar.Dragging && i != PlayerHotbar.DraggedItemSource {
+			PlayerInventory.Slots[i] = PlayerHotbar.DraggedItem
+			PlayerHotbar.Slots[PlayerHotbar.DraggedItemSource].Name = ""
+			PlayerHotbar.Slots[PlayerHotbar.DraggedItemSource].Quantity = 0
+			PlayerHotbar.Dragging = false
+		}
+
 		item := PlayerInventory.Slots[i]
 
 		if item.Name != "" {
 			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
 			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
+		}
+
+		if PlayerInventory.Dragging {
+			mouse := rl.GetMousePosition()
+			rl.DrawTexturePro(item.Icon, item.IconSrc, rl.NewRectangle(mouse.X-24, mouse.Y-24, 32, 32), rl.NewVector2(0, 0), 0, rl.White)
 		}
 	}
 }
@@ -247,15 +289,12 @@ func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
 }
 
 func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
-
 	for i := range h.Slots {
 		if h.Slots[i].Name == newItem.Name {
 			h.Slots[i].Quantity += newItem.Quantity
 			return true
 		}
 	}
-
-	fmt.Println(len(h.Slots), "slots")
 
 	for i := range h.Slots {
 		if h.Slots[i].Name == "" {
