@@ -88,6 +88,8 @@ func input() {
 	}
 
 	userinterface.ItemBarInput()
+
+	items.InputHoe()
 }
 
 func update() {

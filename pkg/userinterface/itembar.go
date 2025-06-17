@@ -110,6 +110,7 @@ func DrawUserInterface() {
 	}
 
 	renderItemBarLayer(itembar)
+
 	if openInventory {
 		renderItemBarLayer(inventory)
 		DrawInventorySlots()
@@ -130,7 +131,7 @@ func DrawItemBar() {
 
 	mousePosition := rl.GetMousePosition()
 
-	for i := 0; i < len(PlayerHotbar.Slots); i++ {
+	for i, item := range PlayerHotbar.Slots {
 		PlayerHotbar.Slots[i].X = int32(screenWidth/2 - 182 + (i * 35))
 		PlayerHotbar.Slots[i].Y = int32(screenHeight - UserInterface.MapHeight*UserInterface.TileSize + 194)
 		buttonDest.X = float32(PlayerHotbar.Slots[i].X)
@@ -149,10 +150,19 @@ func DrawItemBar() {
 			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 		}
 
-		item := PlayerHotbar.Slots[i]
+		item = PlayerHotbar.Slots[i]
 
-		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) && !PlayerHotbar.Dragging {
+		if item.Name != "" {
+			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
+		}
+
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 			PlayerHotbar.SelectedIndex = i
+
+			item = PlayerHotbar.Slots[i]
+
+			fmt.Println("Item at selected index:", item.Name)
 
 			if item.Name != "" {
 				PlayerHotbar.Dragging = true
@@ -162,7 +172,7 @@ func DrawItemBar() {
 				PlayerHotbar.Slots[i].Quantity = 0
 			}
 		}
-
+		// fix dass wenn ein Item ausgewaehlt ist mit der Maus dass wenn man ein Item in der Hotbar anklickt sich die Items wechseln
 		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonDown(rl.MouseLeftButton) && PlayerHotbar.Dragging && i != PlayerHotbar.DraggedItemSource {
 			PlayerHotbar.Slots[i] = PlayerHotbar.DraggedItem
 			PlayerHotbar.Slots[PlayerHotbar.DraggedItemSource].Name = ""
@@ -170,13 +180,10 @@ func DrawItemBar() {
 			PlayerHotbar.Dragging = false
 		}
 
-		if item.Name != "" {
-			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
-			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
-		}
-
 		if PlayerHotbar.Dragging {
 			mouse := rl.GetMousePosition()
+
+			item = PlayerHotbar.DraggedItem
 			rl.DrawTexturePro(item.Icon, item.IconSrc, rl.NewRectangle(mouse.X-24, mouse.Y-24, 32, 32), rl.NewVector2(0, 0), 0, rl.White)
 		}
 	}
@@ -241,6 +248,13 @@ func DrawInventorySlots() {
 
 		rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 
+		item := PlayerInventory.Slots[i]
+
+		if item.Name != "" {
+			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
+			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
+		}
+
 		// sorgt dafuer dass das Item wieder in die Hotbar gelegt wird
 		/* 		if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 			PlayerInventory.SelectedIndex = i
@@ -254,9 +268,11 @@ func DrawInventorySlots() {
 		if rl.CheckCollisionPointRec(rl.GetMousePosition(), buttonDest) && rl.IsMouseButtonPressed(rl.MouseLeftButton) && !PlayerHotbar.Dragging {
 			PlayerInventory.SelectedIndex = i
 
-			if PlayerInventory.Slots[i].Name != "" {
+			item := PlayerInventory.Slots[i]
+
+			if item.Name != "" {
 				PlayerInventory.Dragging = true
-				PlayerInventory.DraggedItem = PlayerInventory.Slots[i]
+				PlayerInventory.DraggedItem = item
 				PlayerInventory.DraggedItemSource = i
 				PlayerInventory.Slots[i].Name = ""
 				PlayerInventory.Slots[i].Quantity = 0
@@ -270,15 +286,10 @@ func DrawInventorySlots() {
 			PlayerHotbar.Dragging = false
 		}
 
-		item := PlayerInventory.Slots[i]
-
-		if item.Name != "" {
-			rl.DrawTexturePro(item.Icon, item.IconSrc, ScaleItemDest(buttonDest, -10), rl.NewVector2(0, 0), 0, rl.White)
-			rl.DrawText(fmt.Sprintf("%d", item.Quantity), int32(buttonDest.X+25), int32(buttonDest.Y+30), 0, rl.White)
-		}
-
 		if PlayerInventory.Dragging {
 			mouse := rl.GetMousePosition()
+
+			item := PlayerInventory.DraggedItem
 			rl.DrawTexturePro(item.Icon, item.IconSrc, rl.NewRectangle(mouse.X-24, mouse.Y-24, 32, 32), rl.NewVector2(0, 0), 0, rl.White)
 		}
 	}

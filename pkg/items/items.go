@@ -18,6 +18,7 @@ var (
 	ItemsSprite rl.Texture2D
 	AxeSrc      rl.Rectangle
 	AxeDest     rl.Rectangle
+	HoeSrc      rl.Rectangle
 	worldItems  []WorldItem
 )
 
@@ -25,6 +26,7 @@ func InitItems() {
 	ItemsSprite = rl.LoadTexture("assets/Objects/Items/tools-n-meterial-items.png")
 	AxeSrc = rl.NewRectangle(16, 0, 16, 16)
 	WateringCanSrc := rl.NewRectangle(0, 0, 16, 16)
+	HoeSrc = rl.NewRectangle(32, 0, 16, 16)
 
 	worldItems = append(worldItems, WorldItem{
 		Position: rl.NewVector2(400, 430),
@@ -38,7 +40,7 @@ func InitItems() {
 	})
 
 	worldItems = append(worldItems, WorldItem{
-		Position: rl.NewVector2(500, 550),
+		Position: rl.NewVector2(430, 460),
 		Item: userinterface.Item{
 			Name:     "Watering Can",
 			Icon:     ItemsSprite,
@@ -47,6 +49,32 @@ func InitItems() {
 		},
 		Active: true,
 	})
+
+	worldItems = append(worldItems, WorldItem{
+		Position: rl.NewVector2(480, 465),
+		Item: userinterface.Item{
+			Name:     "Hoe",
+			Icon:     ItemsSprite,
+			IconSrc:  HoeSrc,
+			Quantity: 1,
+		},
+		Active: true,
+	})
+}
+
+func InputHoe() {
+	if rl.IsKeyPressed(rl.KeyH) {
+		worldItems = append(worldItems, WorldItem{
+			Position: rl.NewVector2(player.PlayerDest.X+50, player.PlayerDest.Y+50),
+			Item: userinterface.Item{
+				Name:     "Hoe",
+				Icon:     ItemsSprite,
+				IconSrc:  HoeSrc,
+				Quantity: 1,
+			},
+			Active: true,
+		})
+	}
 }
 
 func DrawItems() {
