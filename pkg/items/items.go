@@ -1,7 +1,6 @@
 package items
 
 import (
-	"fmt"
 	"godew-valley/pkg/player"
 	"godew-valley/pkg/userinterface"
 
@@ -99,12 +98,16 @@ func UpdateItems() {
 		itemRect := rl.NewRectangle(item.Position.X, item.Position.Y, 32, 32)
 
 		if rl.CheckCollisionRecs(player.PlayerHitBox, itemRect) {
-			success := userinterface.PlayerHotbar.AddItemToHotbar(item.Item)
+			successHotBar := userinterface.PlayerHotbar.AddItemToHotbar(item.Item)
 
-			if success {
+			if successHotBar {
 				item.Active = false
 			} else {
-				fmt.Println("Item not added to hotbar")
+				successInventory := userinterface.PlayerInventory.AddItemToHotbar(item.Item)
+
+				if successInventory {
+					item.Active = false
+				}
 			}
 		}
 	}

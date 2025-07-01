@@ -177,14 +177,14 @@ func DrawItemBar() {
 			}
 		}
 
-		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonDown(rl.MouseLeftButton) && Dragging.Drag && i != Dragging.Source {
-			fmt.Println("clicked")
-			if PlayerHotbar.Slots[i].Name != "" {
-				if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
-					cachedItem = PlayerHotbar.Slots[i]
-					PlayerHotbar.Slots[i] = Dragging.Item
-					Dragging.Item = cachedItem
-				}
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
+			if i == Dragging.Source {
+				PlayerHotbar.Slots[i] = Dragging.Item
+				Dragging.Drag = false
+			} else if PlayerHotbar.Slots[i].Name != "" {
+				cachedItem = PlayerHotbar.Slots[i]
+				PlayerHotbar.Slots[i] = Dragging.Item
+				Dragging.Item = cachedItem
 			} else {
 				PlayerHotbar.Slots[i] = Dragging.Item
 				Dragging.Drag = false
@@ -278,16 +278,17 @@ func DrawInventorySlots() {
 				PlayerInventory.Slots[i] = Item{}
 			}
 		}
-
-		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonDown(rl.MouseLeftButton) && Dragging.Drag && i != Dragging.Source {
-			fmt.Println("clicked")
-			if PlayerInventory.Slots[i].Name != "" {
-				if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
-					cachedItem = PlayerInventory.Slots[i]
-					PlayerInventory.Slots[i] = Dragging.Item
-					Dragging.Item = cachedItem
-				}
+		// bug: der index von inventory ist gleich wie die ovn der Hotbar und deswegen verschwinden die Items wenn ich in den selben Hotbar Slot klicke
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
+			if i == Dragging.Source {
+				PlayerInventory.Slots[i] = Dragging.Item
+				Dragging.Drag = false
+			} else if PlayerInventory.Slots[i].Name != "" {
+				cachedItem = PlayerInventory.Slots[i]
+				PlayerInventory.Slots[i] = Dragging.Item
+				Dragging.Item = cachedItem
 			} else {
+				fmt.Println("fallback")
 				PlayerInventory.Slots[i] = Dragging.Item
 				Dragging.Drag = false
 			}
