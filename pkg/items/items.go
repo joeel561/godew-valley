@@ -18,6 +18,9 @@ var (
 	AxeSrc      rl.Rectangle
 	AxeDest     rl.Rectangle
 	HoeSrc      rl.Rectangle
+	GrassSrc    rl.Rectangle
+	StickSrc    rl.Rectangle
+	BranchSrc   rl.Rectangle
 	worldItems  []WorldItem
 )
 
@@ -26,6 +29,9 @@ func InitItems() {
 	AxeSrc = rl.NewRectangle(16, 0, 16, 16)
 	WateringCanSrc := rl.NewRectangle(0, 0, 16, 16)
 	HoeSrc = rl.NewRectangle(32, 0, 16, 16)
+	GrassSrc = rl.NewRectangle(48, 0, 16, 16)
+	StickSrc = rl.NewRectangle(16, 16, 16, 16)
+	BranchSrc = rl.NewRectangle(32, 32, 16, 16)
 
 	worldItems = append(worldItems, WorldItem{
 		Position: rl.NewVector2(400, 430),
@@ -55,6 +61,38 @@ func InitItems() {
 			Name:     "Hoe",
 			Icon:     ItemsSprite,
 			IconSrc:  HoeSrc,
+			Quantity: 1,
+		},
+		Active: true,
+	})
+	worldItems = append(worldItems, WorldItem{
+		Position: rl.NewVector2(480, 475),
+		Item: userinterface.Item{
+			Name:     "Grass",
+			Icon:     ItemsSprite,
+			IconSrc:  GrassSrc,
+			Quantity: 1,
+		},
+		Active: true,
+	})
+
+	worldItems = append(worldItems, WorldItem{
+		Position: rl.NewVector2(482, 485),
+		Item: userinterface.Item{
+			Name:     "Branch",
+			Icon:     ItemsSprite,
+			IconSrc:  BranchSrc,
+			Quantity: 1,
+		},
+		Active: true,
+	})
+
+	worldItems = append(worldItems, WorldItem{
+		Position: rl.NewVector2(485, 490),
+		Item: userinterface.Item{
+			Name:     "Stick",
+			Icon:     ItemsSprite,
+			IconSrc:  StickSrc,
 			Quantity: 1,
 		},
 		Active: true,

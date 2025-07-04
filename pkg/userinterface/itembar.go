@@ -64,10 +64,11 @@ type Hotbar struct {
 }
 
 type DraggedItem struct {
-	Item     Item
-	Source   int
-	Position rl.Vector2
-	Drag     bool
+	Item       Item
+	Source     int
+	SourceType string // "hotbar" or "inventory"
+	Position   rl.Vector2
+	Drag       bool
 }
 
 func InitUserInterface() {
@@ -87,10 +88,11 @@ func InitUserInterface() {
 	}
 
 	Dragging = DraggedItem{
-		Item:     Item{},
-		Source:   -1,
-		Position: rl.NewVector2(0, 0),
-		Drag:     false,
+		Item:       Item{},
+		Source:     -1,
+		SourceType: "",
+		Position:   rl.NewVector2(0, 0),
+		Drag:       false,
 	}
 }
 
@@ -173,21 +175,18 @@ func DrawItemBar() {
 				Dragging.Drag = true
 				Dragging.Item = item
 				Dragging.Source = i
+				Dragging.SourceType = "hotbar"
 				PlayerHotbar.Slots[i] = Item{}
 			}
 		}
 
 		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
-			if i == Dragging.Source {
-				PlayerHotbar.Slots[i] = Dragging.Item
-				Dragging.Drag = false
+			if i == Dragging.Source && Dragging.SourceType == "hotbar" {
+				placeItemInSlot(&PlayerHotbar.Slots[i], "hotbar")
 			} else if PlayerHotbar.Slots[i].Name != "" {
-				cachedItem = PlayerHotbar.Slots[i]
-				PlayerHotbar.Slots[i] = Dragging.Item
-				Dragging.Item = cachedItem
+				swapItems(&PlayerHotbar.Slots[i], "hotbar")
 			} else {
-				PlayerHotbar.Slots[i] = Dragging.Item
-				Dragging.Drag = false
+				placeItemInSlot(&PlayerHotbar.Slots[i], "hotbar")
 			}
 		}
 
@@ -275,22 +274,18 @@ func DrawInventorySlots() {
 				Dragging.Drag = true
 				Dragging.Item = item
 				Dragging.Source = i
+				Dragging.SourceType = "inventory"
 				PlayerInventory.Slots[i] = Item{}
 			}
 		}
-		// bug: der index von inventory ist gleich wie die ovn der Hotbar und deswegen verschwinden die Items wenn ich in den selben Hotbar Slot klicke
+
 		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
-			if i == Dragging.Source {
-				PlayerInventory.Slots[i] = Dragging.Item
-				Dragging.Drag = false
+			if i == Dragging.Source && Dragging.SourceType == "inventory" {
+				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
 			} else if PlayerInventory.Slots[i].Name != "" {
-				cachedItem = PlayerInventory.Slots[i]
-				PlayerInventory.Slots[i] = Dragging.Item
-				Dragging.Item = cachedItem
+				swapItems(&PlayerInventory.Slots[i], "inventory")
 			} else {
-				fmt.Println("fallback")
-				PlayerInventory.Slots[i] = Dragging.Item
-				Dragging.Drag = false
+				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
 			}
 		}
 
@@ -306,6 +301,23 @@ func DrawInventorySlots() {
 			rl.DrawTexturePro(item.Icon, item.IconSrc, rl.NewRectangle(mouse.X-24, mouse.Y-24, 32, 32), rl.NewVector2(0, 0), 0, rl.White)
 		}
 	}
+}
+
+func resetDragState() {
+	Dragging.Drag = false
+	Dragging.SourceType = ""
+}
+
+func placeItemInSlot(slot *Item, targetSourceType string) {
+	*slot = Dragging.Item
+	resetDragState()
+}
+
+func swapItems(slot *Item, targetSourceType string) {
+	cachedItem = *slot
+	*slot = Dragging.Item
+	Dragging.Item = cachedItem
+	Dragging.SourceType = targetSourceType
 }
 
 func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
