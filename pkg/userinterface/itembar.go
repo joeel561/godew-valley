@@ -28,6 +28,7 @@ var (
 	PlayerInventory Hotbar
 	Dragging        DraggedItem
 	cachedItem      Item
+	maxQuantity     int = 64
 )
 
 type jsonMap struct {
@@ -180,6 +181,10 @@ func DrawItemBar() {
 			}
 		}
 
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseRightButton) && !Dragging.Drag {
+			splitItems(&PlayerHotbar.Slots[i], "hotbar")
+		}
+
 		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
 			if i == Dragging.Source && Dragging.SourceType == "hotbar" {
 				placeItemInSlot(&PlayerHotbar.Slots[i], "hotbar")
@@ -279,10 +284,15 @@ func DrawInventorySlots() {
 			}
 		}
 
+		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonPressed(rl.MouseRightButton) && !Dragging.Drag {
+			splitItems(&PlayerInventory.Slots[i], "inventory")
+		}
+
 		if rl.CheckCollisionPointRec(mousePosition, buttonDest) && rl.IsMouseButtonReleased(rl.MouseLeftButton) && Dragging.Drag {
 			if i == Dragging.Source && Dragging.SourceType == "inventory" {
 				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
 			} else if PlayerInventory.Slots[i].Name != "" {
+				fmt.Println("Swapping items in hotbar")
 				swapItems(&PlayerInventory.Slots[i], "inventory")
 			} else {
 				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
@@ -313,11 +323,40 @@ func placeItemInSlot(slot *Item, targetSourceType string) {
 	resetDragState()
 }
 
+func splitItems(slot *Item, targetSourceType string) {
+	if slot.Name != "" {
+		fmt.Println(slot.Quantity, maxQuantity)
+		if slot.Quantity == maxQuantity {
+			Dragging.Drag = true
+			Dragging.Item = *slot
+			Dragging.Item.Quantity = maxQuantity / 2
+			slot.Quantity -= maxQuantity / 2
+			Dragging.SourceType = targetSourceType
+		} else if slot.Quantity > 1 {
+			Dragging.Drag = true
+			Dragging.Item = *slot
+			Dragging.Item.Quantity = 1
+			slot.Quantity -= 1
+			Dragging.SourceType = targetSourceType
+		} else {
+			Dragging.Drag = true
+			Dragging.Item = *slot
+			Dragging.SourceType = targetSourceType
+			*slot = Item{}
+		}
+	}
+}
+
 func swapItems(slot *Item, targetSourceType string) {
-	cachedItem = *slot
-	*slot = Dragging.Item
-	Dragging.Item = cachedItem
-	Dragging.SourceType = targetSourceType
+	if slot.Name == Dragging.Item.Name && slot.Quantity+Dragging.Item.Quantity <= maxQuantity {
+		slot.Quantity += Dragging.Item.Quantity
+		resetDragState()
+	} else {
+		cachedItem = *slot
+		*slot = Dragging.Item
+		Dragging.Item = cachedItem
+		Dragging.SourceType = targetSourceType
+	}
 }
 
 func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
@@ -326,7 +365,7 @@ func ScaleItemDest(i rl.Rectangle, s float32) rl.Rectangle {
 
 func (h *Hotbar) AddItemToHotbar(newItem Item) bool {
 	for i := range h.Slots {
-		if h.Slots[i].Name == newItem.Name {
+		if h.Slots[i].Name == newItem.Name && h.Slots[i].Quantity+newItem.Quantity <= maxQuantity {
 			h.Slots[i].Quantity += newItem.Quantity
 			return true
 		}
