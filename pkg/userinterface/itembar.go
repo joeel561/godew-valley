@@ -292,7 +292,6 @@ func DrawInventorySlots() {
 			if i == Dragging.Source && Dragging.SourceType == "inventory" {
 				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
 			} else if PlayerInventory.Slots[i].Name != "" {
-				fmt.Println("Swapping items in hotbar")
 				swapItems(&PlayerInventory.Slots[i], "inventory")
 			} else {
 				placeItemInSlot(&PlayerInventory.Slots[i], "inventory")
@@ -325,7 +324,6 @@ func placeItemInSlot(slot *Item, targetSourceType string) {
 
 func splitItems(slot *Item, targetSourceType string) {
 	if slot.Name != "" {
-		fmt.Println(slot.Quantity, maxQuantity)
 		if slot.Quantity == maxQuantity {
 			Dragging.Drag = true
 			Dragging.Item = *slot
