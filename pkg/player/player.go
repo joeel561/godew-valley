@@ -1,6 +1,8 @@
 package player
 
 import (
+	"fmt"
+	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -23,6 +25,9 @@ var (
 	playerFrame                                   int
 	PlayerHitBox                                  rl.Rectangle
 	playerHitBoxYOffset                           float32 = 3
+	playerHoe                                     bool
+	playerMoveTool                                bool
+	playerDirection                               int
 
 	frameCount int
 
@@ -48,10 +53,14 @@ func DrawPlayerTexture() {
 }
 
 func PlayerInput() {
+
+	activeItem := userinterface.PlayerActiveItem
+
 	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
 		playerMoving = true
 		playerDir = 5
 		playerUp = true
+
 	}
 
 	if rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown) {
@@ -77,6 +86,56 @@ func PlayerInput() {
 	} else {
 		playerSpeed = 1.4
 	}
+
+	if activeItem.Name == "Hoe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+		playerHoe = true
+		playerMoveTool = true
+
+	}
+
+	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
+		playerMoveTool = false
+		playerHoe = false
+	}
+}
+
+func PlayerUseTools() {
+	if playerMoveTool {
+		fmt.Println("playermovetool", playerDirection)
+
+		if playerDirection == 8 {
+			if playerHoe {
+				fmt.Println(playerDir, "playerHoe")
+				playerDir = 12
+			}
+		}
+
+		if playerDirection == 9 {
+			if playerHoe {
+				playerDir = 13
+			}
+		}
+
+		if playerDirection == 11 {
+			if playerHoe {
+				playerDir = 15
+			}
+
+		}
+		if playerDirection == 10 {
+			if playerHoe {
+				playerDir = 14
+			}
+		}
+	}
+
+	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
+		playerMoveTool = false
+		playerHoe = false
+	}
+
+	playerMoveTool = false
+	playerHoe = false
 }
 
 func PlayerMoving() {
@@ -85,30 +144,30 @@ func PlayerMoving() {
 
 	if playerMoving {
 		if playerUp {
+			playerDirection = 9
 			PlayerDest.Y -= playerSpeed
-
 			if playerSpeed == 2 {
 				playerDir = 9
 			}
 		}
 		if playerDown {
+			playerDirection = 8
 			PlayerDest.Y += playerSpeed
-
 			if playerSpeed == 2 {
 				playerDir = 8
 			}
 		}
 		if playerLeft {
+			playerDirection = 11
 			PlayerDest.X -= playerSpeed
-
 			if playerSpeed == 2 {
 				playerDir = 11
 			}
 
 		}
 		if playerRight {
+			playerDirection = 10
 			PlayerDest.X += playerSpeed
-
 			if playerSpeed == 2 {
 				playerDir = 10
 			}
@@ -130,6 +189,10 @@ func PlayerMoving() {
 		playerFrame = 0
 	}
 
+	/* 	if !playerMoveTool {
+		playerDir = playerDirection // Reset player direction to the current direction
+	} */
+
 	if !playerMoving && playerFrame > 1 {
 		playerFrame = 0
 	}
@@ -148,7 +211,6 @@ func PlayerMoving() {
 
 	playerMoving = false
 	playerUp, playerDown, playerLeft, playerRight = false, false, false, false
-
 }
 
 func PlayerCollision(tiles []world.Tile) {

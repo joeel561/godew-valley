@@ -16,19 +16,20 @@ const (
 )
 
 var (
-	UserInterface   jsonMap
-	spritesheet     rl.Texture2D
-	tileDest        rl.Rectangle
-	tileSrc         rl.Rectangle
-	tex             rl.Texture2D
-	texColumns      int32
-	buttonSprite    rl.Texture2D
-	PlayerHotbar    Hotbar
-	openInventory   bool
-	PlayerInventory Hotbar
-	Dragging        DraggedItem
-	cachedItem      Item
-	maxQuantity     int = 64
+	UserInterface    jsonMap
+	spritesheet      rl.Texture2D
+	tileDest         rl.Rectangle
+	tileSrc          rl.Rectangle
+	tex              rl.Texture2D
+	texColumns       int32
+	buttonSprite     rl.Texture2D
+	PlayerHotbar     Hotbar
+	openInventory    bool
+	PlayerInventory  Hotbar
+	Dragging         DraggedItem
+	cachedItem       Item
+	maxQuantity      int = 64
+	PlayerActiveItem Item
 )
 
 type jsonMap struct {
@@ -162,6 +163,8 @@ func DrawItemBar() {
 		if i == PlayerHotbar.SelectedIndex {
 			rl.DrawTexturePro(buttonSprite, buttonSelected, buttonSelectedDest, rl.NewVector2(0, 0), 0, rl.White)
 			rl.DrawTexturePro(buttonSprite, buttonActive, buttonActiveDest, rl.NewVector2(0, 0), 0, rl.White)
+
+			PlayerActiveItem = PlayerHotbar.Slots[i]
 		} else {
 			rl.DrawTexturePro(buttonSprite, buttonSrc, buttonDest, rl.NewVector2(0, 0), 0, rl.White)
 		}

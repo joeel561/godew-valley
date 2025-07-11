@@ -95,6 +95,7 @@ func input() {
 func update() {
 	running = !rl.WindowShouldClose()
 	player.PlayerMoving()
+	player.PlayerUseTools()
 	items.UpdateItems()
 
 	//rl.UpdateMusicStream(music)
