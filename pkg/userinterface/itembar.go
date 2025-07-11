@@ -323,6 +323,8 @@ func placeItemInSlot(slot *Item, targetSourceType string) {
 }
 
 func splitItems(slot *Item, targetSourceType string) {
+
+	fmt.Println("Splitting items")
 	if slot.Name != "" {
 		if slot.Quantity == maxQuantity {
 			Dragging.Drag = true
