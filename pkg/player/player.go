@@ -28,6 +28,8 @@ var (
 	playerHoe                                     bool
 	playerMoveTool                                bool
 	playerDirection                               int
+	playerAxe                                     bool
+	playerWateringCan                             bool
 
 	frameCount int
 
@@ -60,7 +62,6 @@ func PlayerInput() {
 		playerMoving = true
 		playerDir = 5
 		playerUp = true
-
 	}
 
 	if rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown) {
@@ -90,29 +91,53 @@ func PlayerInput() {
 	if activeItem.Name == "Hoe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerHoe = true
 		playerMoveTool = true
+	}
 
+	if activeItem.Name == "Axe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+		playerMoveTool = true
+		playerAxe = true
+	}
+
+	if activeItem.Name == "Watering Can" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+		playerMoveTool = true
+		playerWateringCan = true
 	}
 
 	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
 		playerMoveTool = false
 		playerHoe = false
+		playerAxe = false
+		playerWateringCan = false
 	}
 }
 
 func PlayerUseTools() {
 	if playerMoveTool {
-		fmt.Println("playermovetool", playerDirection)
-
 		if playerDirection == 8 {
 			if playerHoe {
-				fmt.Println(playerDir, "playerHoe")
 				playerDir = 12
+			}
+
+			if playerAxe {
+				playerDir = 16
+			}
+
+			if playerWateringCan {
+				playerDir = 20
 			}
 		}
 
 		if playerDirection == 9 {
 			if playerHoe {
 				playerDir = 13
+			}
+
+			if playerAxe {
+				playerDir = 17
+			}
+
+			if playerWateringCan {
+				playerDir = 21
 			}
 		}
 
@@ -121,21 +146,35 @@ func PlayerUseTools() {
 				playerDir = 15
 			}
 
+			if playerAxe {
+				playerDir = 19
+			}
+
+			if playerWateringCan {
+				playerDir = 23
+			}
 		}
 		if playerDirection == 10 {
 			if playerHoe {
 				playerDir = 14
 			}
+
+			if playerAxe {
+				playerDir = 18
+			}
+
+			if playerWateringCan {
+				playerDir = 22
+			}
+		}
+
+		if frameCount%8 == 1 {
+			playerFrame++
 		}
 	}
 
-	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
-		playerMoveTool = false
-		playerHoe = false
-	}
-
-	playerMoveTool = false
-	playerHoe = false
+	fmt.Println("playerMoving", playerMoveTool)
+	fmt.Println("playerFrame", playerFrame)
 }
 
 func PlayerMoving() {
@@ -189,12 +228,9 @@ func PlayerMoving() {
 		playerFrame = 0
 	}
 
-	/* 	if !playerMoveTool {
-		playerDir = playerDirection // Reset player direction to the current direction
-	} */
-
-	if !playerMoving && playerFrame > 1 {
+	if !playerMoveTool && !playerMoving && playerFrame > 1 {
 		playerFrame = 0
+		playerDir = playerDirection
 	}
 
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
