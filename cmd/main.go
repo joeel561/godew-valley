@@ -47,6 +47,7 @@ func init() {
 	world.InitDoors()
 	items.InitItems()
 	player.InitPlayer()
+
 	userinterface.InitUserInterface()
 
 	rl.InitAudioDevice()
@@ -58,6 +59,8 @@ func init() {
 	printDebug = false
 
 	world.LoadMap("pkg/world/world.json")
+
+	player.InitPlowGrid()
 
 	userinterface.LoadUserInterfaceMap("pkg/userinterface/userinterface.json")
 }

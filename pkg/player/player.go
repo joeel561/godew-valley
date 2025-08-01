@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
@@ -91,6 +90,7 @@ func PlayerInput() {
 	if activeItem.Name == "Hoe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerHoe = true
 		playerMoveTool = true
+		PlowTile(int(PlayerDest.X/16), int(PlayerDest.Y/16))
 	}
 
 	if activeItem.Name == "Axe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
@@ -172,9 +172,6 @@ func PlayerUseTools() {
 			playerFrame++
 		}
 	}
-
-	fmt.Println("playerMoving", playerMoveTool)
-	fmt.Println("playerFrame", playerFrame)
 }
 
 func PlayerMoving() {

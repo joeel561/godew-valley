@@ -24,6 +24,7 @@ var (
 	WalkableWater  []Tile
 	Paths          []Tile
 	ItemBarTiles   []Tile
+	GroundTiles    []Tile
 )
 
 type JsonMap struct {
@@ -38,10 +39,20 @@ type Layer struct {
 	Tiles []Tile `json:"tiles"`
 }
 
+type TileState int
+
+const (
+	TileDefault = TileState(iota)
+	TilePlowed
+	TileWatered
+	TilePlanted
+)
+
 type Tile struct {
-	Id string `json:"id"`
-	X  int    `json:"x"`
-	Y  int    `json:"y"`
+	Id    string `json:"id"`
+	X     int    `json:"x"`
+	Y     int    `json:"y"`
+	State TileState
 }
 
 func LoadMap(mapFile string) {
@@ -65,11 +76,9 @@ func InitWorld() {
 }
 
 func DrawWorld() {
-	var groundTiles []Tile
-
 	for i := 0; i < len(WorldMap.Layers); i++ {
 		if WorldMap.Layers[i].Name == "Background" {
-			groundTiles = WorldMap.Layers[i].Tiles
+			GroundTiles = WorldMap.Layers[i].Tiles
 		}
 
 		if WorldMap.Layers[i].Name == "Water" {
@@ -97,7 +106,7 @@ func DrawWorld() {
 
 	RenderLayer(WaterTiles)
 	RenderLayer(WalkableWater)
-	RenderLayer(groundTiles)
+	RenderLayer(GroundTiles)
 	RenderLayer(Structures)
 	RenderLayer(Paths)
 	RenderLayer(Furniture)
@@ -108,6 +117,7 @@ func RenderLayer(Layer []Tile) {
 		s, _ := strconv.ParseInt(Layer[i].Id, 10, 64)
 		tileId := int(s)
 		tex = SpritesheetMap
+		Layer[i].State = TileDefault
 
 		texColumns := tex.Width / int32(WorldMap.TileSize)
 		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
