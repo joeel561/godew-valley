@@ -35,7 +35,9 @@ func drawScene() {
 		debug.DrawPlayerOutlines()
 	}
 
+	player.DrawPlowGrid()
 	player.DrawPlayerTexture()
+
 }
 
 func init() {

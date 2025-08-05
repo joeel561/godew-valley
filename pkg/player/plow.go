@@ -10,25 +10,32 @@ import (
 var plowGrid [][]world.Tile
 
 var (
-	tileSrc  rl.Rectangle
-	tileDest rl.Rectangle
+	tileSrc         rl.Rectangle
+	tileDest        rl.Rectangle
+	dirtSpriteSheet rl.Texture2D
 )
 
 func InitPlowGrid() {
-	tileSrc = rl.NewRectangle(0, 0, 16, 16)
+	tileSrc = rl.NewRectangle(80, 0, 16, 16)
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
-	plowGrid = make([][]world.Tile, len(world.GroundTiles))
+	plowGrid = make([][]world.Tile, world.WorldMap.MapHeight)
+	dirtSpriteSheet = rl.LoadTexture("assets/Tilesets/ground-tiles/Old-tiles/Tilled_Dirt.png")
 
-	fmt.Println(len(plowGrid), world.WorldMap.MapHeight, world.WorldMap.MapWidth)
+	for i := range plowGrid {
+		plowGrid[i] = make([]world.Tile, world.WorldMap.MapWidth)
+	}
 
-	for y := range plowGrid {
-		plowGrid[y] = make([]world.Tile, world.WorldMap.MapWidth)
-		for x := range plowGrid[y] {
-			plowGrid[y][x] = world.GroundTiles[y*world.WorldMap.MapWidth+x]
+	for _, tile := range world.GroundTiles {
+		plowGrid[tile.Y][tile.X] = tile
+		fmt.Println("Plowed tile at:", tile.X, tile.Y)
+	}
+
+	for i := 0; i < len(plowGrid); i++ {
+		for j := 0; j < len(plowGrid[i]); j++ {
+			fmt.Printf("Element at [%d][%d]: %d\n", i, j, plowGrid[i][j])
 		}
 	}
 
-	fmt.Println(plowGrid)
 }
 
 func PlowTile(x, y int) {
@@ -44,8 +51,11 @@ func DrawPlowGrid() {
 		for x := 0; x < world.WorldMap.MapWidth; x++ {
 			tile := plowGrid[y][x]
 			if tile.State == world.TilePlowed {
-				fmt.Println("Plowed tile at:", x, y)
-				rl.DrawTexturePro(world.SpritesheetMap, tileSrc, rl.NewRectangle(float32(tile.X), float32(tile.Y), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize)), rl.NewVector2(0, 0), 0, rl.White)
+
+				tileSrc = rl.NewRectangle(0, 80, 16, 16) // Assuming plowed tile is at (32, 128) in the spritesheet
+				tileDest = rl.NewRectangle(float32(x*world.WorldMap.TileSize), float32(y*world.WorldMap.TileSize), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize))
+				fmt.Println(tileDest, "Plowed tile at:")
+				rl.DrawTexturePro(dirtSpriteSheet, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 			} else {
 				rl.DrawTexturePro(world.SpritesheetMap, tileSrc, rl.NewRectangle(float32(tile.X), float32(tile.Y), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize)), rl.NewVector2(0, 0), 0, rl.White)
 			}
