@@ -16,7 +16,7 @@ var (
 )
 
 func InitPlowGrid() {
-	tileSrc = rl.NewRectangle(80, 0, 16, 16)
+	tileSrc = rl.NewRectangle(0, 80, 16, 16)
 	tileDest = rl.NewRectangle(0, 0, 16, 16)
 	plowGrid = make([][]world.Tile, world.WorldMap.MapHeight)
 	dirtSpriteSheet = rl.LoadTexture("assets/Tilesets/ground-tiles/Old-tiles/Tilled_Dirt.png")
@@ -29,13 +29,6 @@ func InitPlowGrid() {
 		plowGrid[tile.Y][tile.X] = tile
 		fmt.Println("Plowed tile at:", tile.X, tile.Y)
 	}
-
-	for i := 0; i < len(plowGrid); i++ {
-		for j := 0; j < len(plowGrid[i]); j++ {
-			fmt.Printf("Element at [%d][%d]: %d\n", i, j, plowGrid[i][j])
-		}
-	}
-
 }
 
 func PlowTile(x, y int) {

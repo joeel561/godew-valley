@@ -39,6 +39,7 @@ func DebugText() []string {
 		fmt.Sprintf("Player Src %v", rectToString(playerSrc)),
 		fmt.Sprintf("Player Dest %v", rectToString(player.PlayerDest)),
 		fmt.Sprintf("Player Hitbox %v", rectToString(player.PlayerHitBox)),
+		fmt.Sprintf("Player Tool Hitbox %v", rectToString(player.PlayerToolHitBox)),
 		fmt.Sprintf("Music Paused: %v", musicPaused),
 	}
 }
@@ -68,5 +69,6 @@ func DrawPlayerOutlines() {
 
 	// Draw collision rectangle
 	rl.DrawRectangleLinesEx(player.PlayerHitBox, 1, rl.Green)
+	rl.DrawRectangleLinesEx(player.PlayerToolHitBox, 1, rl.Yellow)
 	rl.DrawRectangleLinesEx(player.PlayerDest, 1, rl.Purple)
 }

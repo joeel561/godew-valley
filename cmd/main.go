@@ -31,11 +31,12 @@ func drawScene() {
 
 	world.DrawDoors()
 
+	player.DrawPlowGrid()
+
 	if printDebug {
 		debug.DrawPlayerOutlines()
 	}
 
-	player.DrawPlowGrid()
 	player.DrawPlayerTexture()
 
 }

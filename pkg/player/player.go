@@ -30,6 +30,7 @@ var (
 	playerDirection                               int
 	playerAxe                                     bool
 	playerWateringCan                             bool
+	PlayerToolHitBox                              rl.Rectangle
 
 	frameCount int
 
@@ -45,6 +46,7 @@ func InitPlayer() {
 
 	PlayerDest = rl.NewRectangle(370, 270, 60, 60)
 	PlayerHitBox = rl.NewRectangle(0, 0, 10, 10)
+	PlayerToolHitBox = rl.NewRectangle(0, 0, 1, 1)
 
 	Cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
 		rl.NewVector2(float32(PlayerDest.X-(PlayerDest.Width/2)), float32(PlayerDest.Y-(PlayerDest.Height/2))), 0, 2)
@@ -55,7 +57,6 @@ func DrawPlayerTexture() {
 }
 
 func PlayerInput() {
-
 	activeItem := userinterface.PlayerActiveItem
 
 	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
@@ -91,9 +92,8 @@ func PlayerInput() {
 	if activeItem.Name == "Hoe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerHoe = true
 		playerMoveTool = true
-		PlowTile(int(PlayerHitBox.X/16+1), int(PlayerHitBox.Y/16))
 
-		fmt.Println("Plowing tile at:", int(PlayerHitBox.X/16), int(PlayerHitBox.Y/16))
+		fmt.Println("Plowing tile at:", int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 	}
 
 	if activeItem.Name == "Axe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
@@ -174,6 +174,10 @@ func PlayerUseTools() {
 		if frameCount%8 == 1 {
 			playerFrame++
 		}
+
+		if playerFrame >= 4 {
+			PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
+		}
 	}
 }
 
@@ -236,8 +240,25 @@ func PlayerMoving() {
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
+	fmt.Println(playerDirection, "Player Direction")
+
 	PlayerHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerHitBox.Width/2
 	PlayerHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + playerHitBoxYOffset
+
+	switch playerDirection {
+	case 8: // Down
+		PlayerToolHitBox.X = PlayerHitBox.X
+		PlayerToolHitBox.Y = PlayerHitBox.Y + 16
+	case 9: // Up
+		PlayerToolHitBox.X = PlayerHitBox.X
+		PlayerToolHitBox.Y = PlayerHitBox.Y - 16
+	case 10: // Right
+		PlayerToolHitBox.X = PlayerHitBox.X + 16
+		PlayerToolHitBox.Y = PlayerHitBox.Y
+	case 11: // Left
+		PlayerToolHitBox.X = PlayerHitBox.X - 16
+		PlayerToolHitBox.Y = PlayerHitBox.Y
+	}
 
 	PlayerCollision(world.WaterTiles)
 	PlayerCollision(world.Structures)
