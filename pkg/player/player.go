@@ -45,7 +45,7 @@ func InitPlayer() {
 	playerSrc = rl.NewRectangle(0, 0, 48, 48)
 
 	PlayerDest = rl.NewRectangle(370, 270, 60, 60)
-	PlayerHitBox = rl.NewRectangle(0, 0, 10, 10)
+	PlayerHitBox = rl.NewRectangle(0, 0, 6, 6)
 	PlayerToolHitBox = rl.NewRectangle(0, 0, 1, 1)
 
 	Cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
@@ -60,27 +60,36 @@ func PlayerInput() {
 	activeItem := userinterface.PlayerActiveItem
 
 	if rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp) {
-		playerMoving = true
-		playerDir = 5
-		playerUp = true
+		if !playerMoveTool {
+			playerMoving = true
+			playerDir = 5
+			playerUp = true
+		}
 	}
 
 	if rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown) {
-		playerMoving = true
-		playerDir = 4
-		playerDown = true
+		if !playerMoveTool {
+			playerMoving = true
+			playerDir = 4
+			playerDown = true
+		}
 	}
 
 	if rl.IsKeyDown(rl.KeyA) || rl.IsKeyDown(rl.KeyLeft) {
-		playerMoving = true
-		playerDir = 7
-		playerLeft = true
+
+		if !playerMoveTool {
+			playerMoving = true
+			playerDir = 7
+			playerLeft = true
+		}
 	}
 
 	if rl.IsKeyDown(rl.KeyD) || rl.IsKeyDown(rl.KeyRight) {
-		playerMoving = true
-		playerDir = 6
-		playerRight = true
+		if !playerMoveTool {
+			playerMoving = true
+			playerDir = 6
+			playerRight = true
+		}
 	}
 
 	if rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift) {
@@ -177,6 +186,10 @@ func PlayerUseTools() {
 
 		if playerFrame >= 4 {
 			PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
+
+			if playerFrame >= 7 {
+				playerMoveTool = false
+			}
 		}
 	}
 }
@@ -245,19 +258,19 @@ func PlayerMoving() {
 	PlayerHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerHitBox.Width/2
 	PlayerHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + playerHitBoxYOffset
 
+	PlayerToolHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerToolHitBox.Width/2
+	PlayerToolHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2)
+
 	switch playerDirection {
 	case 8: // Down
-		PlayerToolHitBox.X = PlayerHitBox.X
-		PlayerToolHitBox.Y = PlayerHitBox.Y + 16
+		PlayerToolHitBox.Y = PlayerToolHitBox.Y + float32(world.WorldMap.TileSize)
 	case 9: // Up
-		PlayerToolHitBox.X = PlayerHitBox.X
-		PlayerToolHitBox.Y = PlayerHitBox.Y - 16
+		PlayerToolHitBox.Y = PlayerToolHitBox.Y - float32(world.WorldMap.TileSize)
 	case 10: // Right
-		PlayerToolHitBox.X = PlayerHitBox.X + 16
-		PlayerToolHitBox.Y = PlayerHitBox.Y
+		PlayerToolHitBox.X = PlayerToolHitBox.X + float32(world.WorldMap.TileSize)
+
 	case 11: // Left
-		PlayerToolHitBox.X = PlayerHitBox.X - 16
-		PlayerToolHitBox.Y = PlayerHitBox.Y
+		PlayerToolHitBox.X = PlayerToolHitBox.X - float32(world.WorldMap.TileSize)
 	}
 
 	PlayerCollision(world.WaterTiles)

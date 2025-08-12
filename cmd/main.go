@@ -33,11 +33,11 @@ func drawScene() {
 
 	player.DrawPlowGrid()
 
+	player.DrawPlayerTexture()
+
 	if printDebug {
 		debug.DrawPlayerOutlines()
 	}
-
-	player.DrawPlayerTexture()
 
 }
 

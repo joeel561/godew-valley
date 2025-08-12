@@ -56,7 +56,7 @@ func InitItems() {
 	})
 
 	worldItems = append(worldItems, WorldItem{
-		Position: rl.NewVector2(480, 465),
+		Position: rl.NewVector2(370, 270),
 		Item: userinterface.Item{
 			Name:     "Hoe",
 			Icon:     ItemsSprite,
