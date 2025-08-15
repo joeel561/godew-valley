@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"godew-valley/pkg/world"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -27,7 +26,6 @@ func InitPlowGrid() {
 
 	for _, tile := range world.GroundTiles {
 		plowGrid[tile.Y][tile.X] = tile
-		fmt.Println("Plowed tile at:", tile.X, tile.Y)
 	}
 }
 
@@ -47,7 +45,6 @@ func DrawPlowGrid() {
 
 				tileSrc = rl.NewRectangle(0, 80, 16, 16) // Assuming plowed tile is at (32, 128) in the spritesheet
 				tileDest = rl.NewRectangle(float32(x*world.WorldMap.TileSize), float32(y*world.WorldMap.TileSize), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize))
-				fmt.Println(tileDest, "Plowed tile at:")
 				rl.DrawTexturePro(dirtSpriteSheet, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 			} else {
 				rl.DrawTexturePro(world.SpritesheetMap, tileSrc, rl.NewRectangle(float32(tile.X), float32(tile.Y), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize)), rl.NewVector2(0, 0), 0, rl.White)

@@ -31,6 +31,7 @@ var (
 	playerAxe                                     bool
 	playerWateringCan                             bool
 	PlayerToolHitBox                              rl.Rectangle
+	playerToolFrame                               int
 
 	frameCount int
 
@@ -124,7 +125,9 @@ func PlayerInput() {
 }
 
 func PlayerUseTools() {
+
 	if playerMoveTool {
+
 		if playerDirection == 8 {
 			if playerHoe {
 				playerDir = 12
@@ -188,10 +191,13 @@ func PlayerUseTools() {
 			PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 
 			if playerFrame >= 7 {
+				playerFrame = 0
 				playerMoveTool = false
 			}
+
 		}
 	}
+
 }
 
 func PlayerMoving() {
@@ -199,6 +205,7 @@ func PlayerMoving() {
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
 	if playerMoving {
+		fmt.Println(playerFrame, "Player Tool Frame")
 		if playerUp {
 			playerDirection = 9
 			PlayerDest.Y -= playerSpeed
@@ -237,7 +244,6 @@ func PlayerMoving() {
 		PlayerOpenBarnDoor()
 	} else if frameCount%45 == 1 {
 		playerFrame++
-
 	}
 
 	frameCount++
@@ -252,8 +258,6 @@ func PlayerMoving() {
 
 	playerSrc.Y = playerSrc.Height * float32(playerDir)
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
-
-	fmt.Println(playerDirection, "Player Direction")
 
 	PlayerHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerHitBox.Width/2
 	PlayerHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + playerHitBoxYOffset
