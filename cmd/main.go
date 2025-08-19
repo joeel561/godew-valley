@@ -64,6 +64,7 @@ func init() {
 	world.LoadMap("pkg/world/world.json")
 
 	player.InitPlowGrid()
+	player.InitBlobMapping()
 
 	userinterface.LoadUserInterfaceMap("pkg/userinterface/userinterface.json")
 }
