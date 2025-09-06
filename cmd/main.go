@@ -4,6 +4,7 @@ import (
 	"godew-valley/pkg/debug"
 	"godew-valley/pkg/items"
 	"godew-valley/pkg/player"
+	"godew-valley/pkg/save"
 	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
@@ -25,7 +26,7 @@ var (
 )
 
 func drawScene() {
-	world.DrawWorld()
+	world.DrawWorld(player.Cam, screenWidth, screenHeight)
 
 	items.DrawItems()
 
@@ -45,7 +46,6 @@ func init() {
 
 	world.InitWorld()
 	world.InitDoors()
-	items.InitItems()
 	player.InitPlayer()
 	userinterface.InitUserInterface()
 
@@ -58,8 +58,10 @@ func init() {
 	printDebug = false
 
 	world.LoadMap("pkg/world/world.json")
-
 	userinterface.LoadUserInterfaceMap("pkg/userinterface/userinterface.json")
+	items.InitItemTextures()
+	save.LoadGame()
+	items.InitItems()
 }
 
 func input() {
@@ -81,6 +83,14 @@ func input() {
 
 	if rl.IsKeyPressed(rl.KeyQ) {
 		musicPaused = !musicPaused
+	}
+
+	if rl.IsKeyPressed(rl.KeyF5) {
+		save.SaveGame()
+	}
+
+	if rl.IsKeyPressed(rl.KeyF9) {
+		save.LoadGame()
 	}
 
 	if rl.IsKeyPressed(rl.KeyEscape) {
@@ -124,8 +134,11 @@ func render() {
 }
 
 func quit() {
+	save.SaveGame()
 	player.UnloadPlayerTexture()
 	world.UnloadWorldTexture()
+	world.UnloadDoors()
+	items.UnloadItems()
 	userinterface.UnloadUserInterface()
 	rl.UnloadMusicStream(music)
 	rl.CloseAudioDevice()

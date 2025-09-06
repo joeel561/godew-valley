@@ -10,20 +10,21 @@ import (
 )
 
 var (
-	tileDest       rl.Rectangle
-	tileSrc        rl.Rectangle
-	WorldMap       JsonMap
-	SpritesheetMap rl.Texture2D
-	tex            rl.Texture2D
-	doorSprite     rl.Texture2D
-	DoorSrc        rl.Rectangle
-	DoorDest       rl.Rectangle
-	WaterTiles     []Tile
-	Structures     []Tile
-	Furniture      []Tile
-	WalkableWater  []Tile
-	Paths          []Tile
-	ItemBarTiles   []Tile
+	tileDest        rl.Rectangle
+	tileSrc         rl.Rectangle
+	WorldMap        JsonMap
+	SpritesheetMap  rl.Texture2D
+	tex             rl.Texture2D
+	doorSprite      rl.Texture2D
+	DoorSrc         rl.Rectangle
+	DoorDest        rl.Rectangle
+	WaterTiles      []Tile
+	Structures      []Tile
+	Furniture       []Tile
+	WalkableWater   []Tile
+	Paths           []Tile
+	ItemBarTiles    []Tile
+	BackgroundTiles []Tile
 )
 
 type JsonMap struct {
@@ -56,6 +57,31 @@ func LoadMap(mapFile string) {
 	byteValue, _ := ioutil.ReadAll(file)
 
 	json.Unmarshal(byteValue, &WorldMap)
+
+	// Cache layer
+	BackgroundTiles = nil
+	WaterTiles = nil
+	Structures = nil
+	Furniture = nil
+	WalkableWater = nil
+	Paths = nil
+
+	for i := 0; i < len(WorldMap.Layers); i++ {
+		switch WorldMap.Layers[i].Name {
+		case "Background":
+			BackgroundTiles = WorldMap.Layers[i].Tiles
+		case "Water":
+			WaterTiles = WorldMap.Layers[i].Tiles
+		case "Structures":
+			Structures = WorldMap.Layers[i].Tiles
+		case "Furniture":
+			Furniture = WorldMap.Layers[i].Tiles
+		case "WalkableWater":
+			WalkableWater = WorldMap.Layers[i].Tiles
+		case "Paths":
+			Paths = WorldMap.Layers[i].Tiles
+		}
+	}
 }
 
 func InitWorld() {
@@ -64,57 +90,60 @@ func InitWorld() {
 	tileSrc = rl.NewRectangle(0, 0, 16, 16)
 }
 
-func DrawWorld() {
-	var groundTiles []Tile
-
-	for i := 0; i < len(WorldMap.Layers); i++ {
-		if WorldMap.Layers[i].Name == "Background" {
-			groundTiles = WorldMap.Layers[i].Tiles
-		}
-
-		if WorldMap.Layers[i].Name == "Water" {
-			WaterTiles = WorldMap.Layers[i].Tiles
-		}
-
-		if WorldMap.Layers[i].Name == "Structures" {
-			Structures = WorldMap.Layers[i].Tiles
-		}
-
-		if WorldMap.Layers[i].Name == "Furniture" {
-			Furniture = WorldMap.Layers[i].Tiles
-		}
-
-		if WorldMap.Layers[i].Name == "WalkableWater" {
-			WalkableWater = WorldMap.Layers[i].Tiles
-		}
-
-		if WorldMap.Layers[i].Name == "Paths" {
-			Paths = WorldMap.Layers[i].Tiles
-		}
-	}
-
-	rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-
-	RenderLayer(WaterTiles)
-	RenderLayer(WalkableWater)
-	RenderLayer(groundTiles)
-	RenderLayer(Structures)
-	RenderLayer(Paths)
-	RenderLayer(Furniture)
+func DrawWorld(cam rl.Camera2D, screenW, screenH int) {
+	RenderLayer(WaterTiles, cam, screenW, screenH)
+	RenderLayer(WalkableWater, cam, screenW, screenH)
+	RenderLayer(BackgroundTiles, cam, screenW, screenH)
+	RenderLayer(Structures, cam, screenW, screenH)
+	RenderLayer(Paths, cam, screenW, screenH)
+	RenderLayer(Furniture, cam, screenW, screenH)
 }
 
-func RenderLayer(Layer []Tile) {
-	for i := 0; i < len(Layer); i++ {
-		s, _ := strconv.ParseInt(Layer[i].Id, 10, 64)
-		tileId := int(s)
-		tex = SpritesheetMap
+func RenderLayer(layer []Tile, cam rl.Camera2D, screenW, screenH int) {
+	if len(layer) == 0 {
+		return
+	}
 
-		texColumns := tex.Width / int32(WorldMap.TileSize)
+	// Tile-Culling: compute view bounds in tile coordinates
+	halfW := float32(screenW) / (2.0 * cam.Zoom)
+	halfH := float32(screenH) / (2.0 * cam.Zoom)
+	minX := cam.Target.X - halfW
+	maxX := cam.Target.X + halfW
+	minY := cam.Target.Y - halfH
+	maxY := cam.Target.Y + halfH
+
+	tsize := float32(WorldMap.TileSize)
+	minTileX := int(minX/tsize) - 1
+	maxTileX := int(maxX/tsize) + 1
+	minTileY := int(minY/tsize) - 1
+	maxTileY := int(maxY/tsize) + 1
+
+	if minTileX < 0 {
+		minTileX = 0
+	}
+	if minTileY < 0 {
+		minTileY = 0
+	}
+
+	tex = SpritesheetMap
+	texColumns := tex.Width / int32(WorldMap.TileSize)
+
+	for i := 0; i < len(layer); i++ {
+		tx := layer[i].X
+		ty := layer[i].Y
+
+		if tx < minTileX || tx > maxTileX || ty < minTileY || ty > maxTileY {
+			continue
+		}
+
+		s, _ := strconv.ParseInt(layer[i].Id, 10, 64)
+		tileId := int(s)
+
 		tileSrc.X = float32(WorldMap.TileSize) * float32((tileId)%int(texColumns))
 		tileSrc.Y = float32(WorldMap.TileSize) * float32((tileId)/int(texColumns))
 
-		tileDest.X = float32(Layer[i].X * WorldMap.TileSize)
-		tileDest.Y = float32(Layer[i].Y * WorldMap.TileSize)
+		tileDest.X = float32(tx * WorldMap.TileSize)
+		tileDest.Y = float32(ty * WorldMap.TileSize)
 
 		rl.DrawTexturePro(tex, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
 	}
