@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
@@ -102,8 +101,6 @@ func PlayerInput() {
 	if activeItem.Name == "Hoe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerHoe = true
 		playerMoveTool = true
-
-		fmt.Println("Plowing tile at:", int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 	}
 
 	if activeItem.Name == "Axe" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
@@ -188,7 +185,10 @@ func PlayerUseTools() {
 		}
 
 		if playerFrame >= 4 {
-			PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
+
+			if playerHoe {
+				PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
+			}
 
 			if playerFrame >= 7 {
 				playerFrame = 0
@@ -205,7 +205,6 @@ func PlayerMoving() {
 	playerSrc.X = playerSrc.Width * float32(playerFrame)
 
 	if playerMoving {
-		fmt.Println(playerFrame, "Player Tool Frame")
 		if playerUp {
 			playerDirection = 9
 			PlayerDest.Y -= playerSpeed
@@ -263,7 +262,7 @@ func PlayerMoving() {
 	PlayerHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + playerHitBoxYOffset
 
 	PlayerToolHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerToolHitBox.Width/2
-	PlayerToolHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2)
+	PlayerToolHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + 2
 
 	switch playerDirection {
 	case 8: // Down

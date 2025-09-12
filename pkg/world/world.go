@@ -25,6 +25,7 @@ var (
 	Paths          []Tile
 	ItemBarTiles   []Tile
 	GroundTiles    []Tile
+	Dirt           []Tile
 )
 
 type JsonMap struct {
@@ -99,6 +100,10 @@ func DrawWorld() {
 
 		if WorldMap.Layers[i].Name == "Paths" {
 			Paths = WorldMap.Layers[i].Tiles
+		}
+
+		if WorldMap.Layers[i].Name == "Dirt" {
+			Dirt = WorldMap.Layers[i].Tiles
 		}
 	}
 
