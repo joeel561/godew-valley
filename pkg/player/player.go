@@ -122,9 +122,9 @@ func PlayerInput() {
 }
 
 func PlayerUseTools() {
+	checkCollision := PlayerToolCollision()
 
 	if playerMoveTool {
-
 		if playerDirection == 8 {
 			if playerHoe {
 				playerDir = 12
@@ -186,7 +186,7 @@ func PlayerUseTools() {
 
 		if playerFrame >= 4 {
 
-			if playerHoe {
+			if playerHoe && checkCollision {
 				PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 			}
 
@@ -299,6 +299,24 @@ func PlayerCollision(tiles []world.Tile) {
 			PlayerDest.Y = oldY
 		}
 	}
+}
+
+func PlayerToolCollision() bool {
+	var jsonMap = world.WorldMap
+
+	var tiles = world.Dirt
+
+	for i := 0; i < len(tiles); i++ {
+		if PlayerToolHitBox.X < float32(tiles[i].X*jsonMap.TileSize+jsonMap.TileSize) &&
+			PlayerToolHitBox.X+PlayerToolHitBox.Width > float32(tiles[i].X*jsonMap.TileSize) &&
+			PlayerToolHitBox.Y < float32(tiles[i].Y*jsonMap.TileSize+jsonMap.TileSize) &&
+			PlayerToolHitBox.Y+PlayerToolHitBox.Height > float32(tiles[i].Y*jsonMap.TileSize) {
+
+			return true
+		}
+	}
+
+	return false
 }
 
 func PlayerOpenHouseDoor() {
