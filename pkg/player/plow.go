@@ -165,8 +165,6 @@ func DrawPlowGrid() {
 				tileSrc = blobMapping[mask]
 				tileDest = rl.NewRectangle(float32(x*world.WorldMap.TileSize), float32(y*world.WorldMap.TileSize), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize))
 				rl.DrawTexturePro(dirtSpriteSheet, tileSrc, tileDest, rl.NewVector2(0, 0), 0, rl.White)
-			} else {
-				rl.DrawTexturePro(world.SpritesheetMap, tileSrc, rl.NewRectangle(float32(tile.X), float32(tile.Y), float32(world.WorldMap.TileSize), float32(world.WorldMap.TileSize)), rl.NewVector2(0, 0), 0, rl.White)
 			}
 		}
 	}

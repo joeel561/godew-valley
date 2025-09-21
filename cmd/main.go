@@ -35,10 +35,11 @@ func drawScene() {
 
 	player.DrawPlayerTexture()
 
+	player.DrawWateringCan()
+
 	if printDebug {
 		debug.DrawPlayerOutlines()
 	}
-
 }
 
 func init() {
@@ -65,6 +66,7 @@ func init() {
 
 	player.InitPlowGrid()
 	player.InitBlobMapping()
+	//player.InitWatering()
 
 	userinterface.LoadUserInterfaceMap("pkg/userinterface/userinterface.json")
 }

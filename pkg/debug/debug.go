@@ -71,4 +71,5 @@ func DrawPlayerOutlines() {
 	rl.DrawRectangleLinesEx(player.PlayerHitBox, 1, rl.Green)
 	rl.DrawRectangleLinesEx(player.PlayerToolHitBox, 1, rl.Red)
 	rl.DrawRectangleLinesEx(player.PlayerDest, 1, rl.Purple)
+	rl.DrawRectangleLinesEx(player.WateringTileDest, 1, rl.Orange)
 }

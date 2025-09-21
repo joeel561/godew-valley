@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"godew-valley/pkg/userinterface"
 	"godew-valley/pkg/world"
 
@@ -31,6 +32,10 @@ var (
 	playerWateringCan                             bool
 	PlayerToolHitBox                              rl.Rectangle
 	playerToolFrame                               int
+	wateringSpriteSheet                           rl.Texture2D
+	wateringTileSrc                               rl.Rectangle
+	WateringTileDest                              rl.Rectangle
+	wateringDir                                   int
 
 	frameCount int
 
@@ -48,12 +53,21 @@ func InitPlayer() {
 	PlayerHitBox = rl.NewRectangle(0, 0, 6, 6)
 	PlayerToolHitBox = rl.NewRectangle(0, 0, 1, 1)
 
+	wateringSpriteSheet = rl.LoadTexture("assets/Characters/watercanframes.png")
+	WateringTileDest = rl.NewRectangle(0, 0, 16, 16)
+	wateringTileSrc = rl.NewRectangle(0, 0, 16, 16)
+
 	Cam = rl.NewCamera2D(rl.NewVector2(float32(screenWidth/2), float32(screenHeight/2)),
 		rl.NewVector2(float32(PlayerDest.X-(PlayerDest.Width/2)), float32(PlayerDest.Y-(PlayerDest.Height/2))), 0, 2)
 }
 
 func DrawPlayerTexture() {
 	rl.DrawTexturePro(playerSprite, playerSrc, PlayerDest, rl.NewVector2(0, 0), 0, rl.White)
+}
+
+func DrawWateringCan() {
+	rl.DrawTexturePro(wateringSpriteSheet, wateringTileSrc, WateringTileDest, rl.NewVector2(0, 0), 0, rl.White)
+	fmt.Println("draw watering can", wateringDir, wateringTileSrc)
 }
 
 func PlayerInput() {
@@ -111,6 +125,7 @@ func PlayerInput() {
 	if activeItem.Name == "Watering Can" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerMoveTool = true
 		playerWateringCan = true
+
 	}
 
 	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
@@ -123,6 +138,7 @@ func PlayerInput() {
 
 func PlayerUseTools() {
 	checkCollision := PlayerToolCollision()
+	wateringTileSrc.X = wateringTileSrc.Width * float32(playerFrame)
 
 	if playerMoveTool {
 		if playerDirection == 8 {
@@ -136,6 +152,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 20
+				wateringDir = 0
 			}
 		}
 
@@ -150,6 +167,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 21
+				wateringDir = 1
 			}
 		}
 
@@ -164,6 +182,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 23
+				wateringDir = 2
 			}
 		}
 		if playerDirection == 10 {
@@ -177,6 +196,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 22
+				wateringDir = 2
 			}
 		}
 
@@ -184,8 +204,10 @@ func PlayerUseTools() {
 			playerFrame++
 		}
 
-		if playerFrame >= 4 {
+		wateringTileSrc.X = wateringTileSrc.Width * float32(playerFrame)
+		wateringTileSrc.Y = wateringTileSrc.Height * float32(wateringDir)
 
+		if playerFrame >= 4 {
 			if playerHoe && checkCollision {
 				PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 			}
@@ -194,10 +216,8 @@ func PlayerUseTools() {
 				playerFrame = 0
 				playerMoveTool = false
 			}
-
 		}
 	}
-
 }
 
 func PlayerMoving() {
@@ -264,6 +284,9 @@ func PlayerMoving() {
 	PlayerToolHitBox.X = PlayerDest.X + (PlayerDest.Width / 2) - PlayerToolHitBox.Width/2
 	PlayerToolHitBox.Y = PlayerDest.Y + (PlayerDest.Height / 2) + 2
 
+	WateringTileDest.X = PlayerDest.X + (PlayerDest.Width / 2) - WateringTileDest.Width/2
+	WateringTileDest.Y = PlayerDest.Y + (PlayerDest.Height / 2) + 2
+
 	switch playerDirection {
 	case 8: // Down
 		PlayerToolHitBox.Y = PlayerToolHitBox.Y + float32(world.WorldMap.TileSize)
@@ -276,7 +299,7 @@ func PlayerMoving() {
 		PlayerToolHitBox.X = PlayerToolHitBox.X - float32(world.WorldMap.TileSize)
 	}
 
-	PlayerCollision(world.WaterTiles)
+	//	PlayerCollision(world.WaterTiles)
 	PlayerCollision(world.Structures)
 	PlayerCollision(world.Furniture)
 
