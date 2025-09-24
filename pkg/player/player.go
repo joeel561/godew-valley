@@ -67,7 +67,7 @@ func DrawPlayerTexture() {
 
 func DrawWateringCan() {
 	rl.DrawTexturePro(wateringSpriteSheet, wateringTileSrc, WateringTileDest, rl.NewVector2(0, 0), 0, rl.White)
-	fmt.Println("draw watering can", wateringDir, wateringTileSrc)
+	//fmt.Println("draw watering can", playerDirection, WateringTileDest)
 }
 
 func PlayerInput() {
@@ -125,7 +125,6 @@ func PlayerInput() {
 	if activeItem.Name == "Watering Can" && rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 		playerMoveTool = true
 		playerWateringCan = true
-
 	}
 
 	if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
@@ -138,7 +137,6 @@ func PlayerInput() {
 
 func PlayerUseTools() {
 	checkCollision := PlayerToolCollision()
-	wateringTileSrc.X = wateringTileSrc.Width * float32(playerFrame)
 
 	if playerMoveTool {
 		if playerDirection == 8 {
@@ -152,7 +150,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 20
-				wateringDir = 0
+				wateringDir = 1
 			}
 		}
 
@@ -182,7 +180,7 @@ func PlayerUseTools() {
 
 			if playerWateringCan {
 				playerDir = 23
-				wateringDir = 2
+				wateringDir = 1
 			}
 		}
 		if playerDirection == 10 {
@@ -207,12 +205,14 @@ func PlayerUseTools() {
 		wateringTileSrc.X = wateringTileSrc.Width * float32(playerFrame)
 		wateringTileSrc.Y = wateringTileSrc.Height * float32(wateringDir)
 
+		fmt.Println(playerFrame)
+
 		if playerFrame >= 4 {
 			if playerHoe && checkCollision {
 				PlowTile(int(PlayerToolHitBox.X/16), int(PlayerToolHitBox.Y/16))
 			}
 
-			if playerFrame >= 7 {
+			if playerFrame >= 8 {
 				playerFrame = 0
 				playerMoveTool = false
 			}
